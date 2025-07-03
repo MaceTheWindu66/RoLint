@@ -1,0 +1,12 @@
+[project]
+name = "rolint"
+version = "0.1.0"
+description = "Multi-language static analyzer for robotics safety"
+dependencies = [
+    "tree_sitter",
+    "typer",
+    "pyyaml"
+]
+
+[project.scripts]
+rolint = "rolint.cli:main"
