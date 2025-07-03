@@ -1,5 +1,8 @@
 from pathlib import Path
 from collections import defaultdict
+from rolint.parser import parser as parser_module
+from rolint.rules import c_rules
+
 
 EXTENSION_MAP = {
     ".c": "c",
@@ -34,7 +37,7 @@ def run_linter(path: Path, lang: str = None, output_format: str = "text"):
             print(f"\n🔧 Linting {len(files)} {lang.upper()} file(s):")
             for f in files:
                 print(f"  - {f}")
-                # TODO: call parser/rules/reporter for (f, lang)
+                run_file_lint(f, lang)
     elif path.is_file():
         inferred_lang = lang or detect_language(path)
         if not inferred_lang:
@@ -43,6 +46,20 @@ def run_linter(path: Path, lang: str = None, output_format: str = "text"):
         print(f"🔍 Linting: {path}")
         print(f"🌐 Language: {inferred_lang}")
         print(f"📤 Output format: {output_format}")
-        # TODO: call parser/rules/reporter for (path, inferred_lang)
+        run_file_lint(path, inferred_lang)
     else:
         print(f"❌ Path does not exist: {path}")
+
+
+def run_file_lint(file_path: Path, lang: str):
+    if lang == "c":
+        from rolint.rules import c_rules
+        tree, source = parser_module.parse_file(file_path, lang)
+        violations = []
+        violations += c_rules.check_banned_functions(tree, source)
+        for v in violations:
+            print(f"🚫 {file_path}:{v['line']}: {v['message']}")
+    elif lang in {"cpp", "python"}:
+        print(f"ℹ️ Linting for {lang.upper()} not yet implemented.")
+    else:
+        print(f"⚠️ Unknown language: {lang}")
