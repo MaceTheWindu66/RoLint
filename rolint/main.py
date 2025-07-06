@@ -4,6 +4,8 @@ from rolint.parser import parser as parser_module
 from rolint.rules import c_rules
 import sys
 
+
+
 EXTENSION_MAP = {
     ".c": "c",
     ".h": "c",
@@ -28,6 +30,9 @@ def collect_files(base_path: Path) -> dict[str, list[Path]]:
     return lang_files
 
 def run_linter(path: Path, lang: str = None, output_format: str = "text"):
+
+    violations = []
+
     if path.is_dir():
         lang_to_files = collect_files(path)
         if not lang_to_files:
@@ -37,7 +42,15 @@ def run_linter(path: Path, lang: str = None, output_format: str = "text"):
             print(f"\n🔧 Linting {len(files)} {lang.upper()} file(s):")
             for f in files:
                 print(f"  - {f}")
-                run_file_lint(f, lang)
+                violations += run_file_lint(f, lang)
+        
+        #Exit with status 1 code if there are violations to prevent commit
+        if violations:
+            print("Blocking Commit.")
+            sys.exit(1)
+        else:
+            sys.exit(0)
+
     elif path.is_file():
         inferred_lang = lang or detect_language(path)
         if not inferred_lang:
@@ -47,15 +60,19 @@ def run_linter(path: Path, lang: str = None, output_format: str = "text"):
         print(f"🌐 Language: {inferred_lang}")
         print(f"📤 Output format: {output_format}")
         run_file_lint(path, inferred_lang)
+        if violations:
+            print("Blocking commit.")
+            sys.exit(1)
+        else:
+            sys.exit(0)
     else:
         print(f"❌ Path does not exist: {path}")
 
 
-def run_file_lint(file_path: Path, lang: str):
+def run_file_lint(file_path: Path, lang: str) -> list[dict]:
+    violations = []
     if lang == "c":
-        from rolint.rules import c_rules
         tree, source = parser_module.parse_file(file_path, lang)
-        violations = []
         violations += c_rules.walk(tree.root_node, source)
         if violations:
             for v in violations:
@@ -64,3 +81,5 @@ def run_file_lint(file_path: Path, lang: str):
         print(f"ℹ️ Linting for {lang.upper()} not yet implemented.")
     else:
         print(f"⚠️ Unknown language: {lang}")
+    
+    return violations
