@@ -3,6 +3,7 @@ from pathlib import Path
 
 from rolint.main import run_linter
 
+##Main entry point for command line with rolint
 app = typer.Typer(help="Rolint - Linter for robotics code (C, C++, Python)")
 
 @app.command()
