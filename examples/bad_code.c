@@ -4,6 +4,11 @@
 char global_buf[100];
 
 void test() {
+    
+    int a;
+    int b = 0;
+    int c = 0, d = 5;
+
     char buf[100];
     gets(buf);                     // 🚨 banned: gets
     strcpy(global_buf, buf);      // 🚨 banned: strcpy
