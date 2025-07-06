@@ -14,6 +14,6 @@ def parse_file(file_path: Path, lang: str):
     if lang not in SUPPORTED_LANGUAGES:
         raise ValueError(f"Unsupported language: {lang}")
 
-    source_code = file_path.read_bytes()  # ✅ bytes, not str
+    source_code = file_path.read_bytes() 
     tree = parsers[lang].parse(source_code)
     return tree, source_code

@@ -31,7 +31,7 @@ def run_linter(path: Path, lang: str = None, output_format: str = "text"):
     if path.is_dir():
         lang_to_files = collect_files(path)
         if not lang_to_files:
-            print("⚠️ No source files found.")
+            print("ERROR: No source files found.")
             return
         for lang, files in lang_to_files.items():
             print(f"\n🔧 Linting {len(files)} {lang.upper()} file(s):")

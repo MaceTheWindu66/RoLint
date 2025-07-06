@@ -3,7 +3,6 @@
     unsafe practices, etc.
 """
 
-import tree_sitter
 
 def check_banned_functions(tree, source_code: str) -> list[dict]:
     banned_functions = {
