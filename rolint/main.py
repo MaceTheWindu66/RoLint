@@ -56,7 +56,7 @@ def run_file_lint(file_path: Path, lang: str):
         from rolint.rules import c_rules
         tree, source = parser_module.parse_file(file_path, lang)
         violations = []
-        violations += c_rules.check_banned_functions(tree, source)
+        violations += c_rules.walk(tree.root_node, source)
         for v in violations:
             print(f"🚫 {file_path}:{v['line']}: {v['message']}")
     elif lang in {"cpp", "python"}:
