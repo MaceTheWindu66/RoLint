@@ -26,6 +26,13 @@ def walk(node, source_code:str, symbol_table: dict) -> list[dict]:
     elif node.type == "cast_expression":
         violations += check_casting(node, source_code, symbol_table)
         violations += check_narrowing_casts(node, source_code, symbol_table)
+    
+    elif node.type == "goto_statement":
+        #Specifically banning goto statements, which are their own nodes in tree_sitter
+        violations.append({
+            "line": node.start_point[0] + 1,
+            "message": f"Usage of 'goto' is banned. Please use structured control flow logic."
+        })
 
 
     for child in node.children:
@@ -33,6 +40,7 @@ def walk(node, source_code:str, symbol_table: dict) -> list[dict]:
 
     return violations
 
+## ------------------------------------ Library and Language Use Rules -----------------------------------------
 
 def check_banned_functions(node, source_code: str) -> list[dict]:
 
@@ -45,7 +53,7 @@ def check_banned_functions(node, source_code: str) -> list[dict]:
     banned_functions = {
         "gets", "strcpy", "strncpy", "printf", "sprintf", "vsprintf",
         "strcat", "strncat", "scanf", "sscanf", "fscanf",
-        "strtok", "atoi", "atol", "atof", "atoll"
+        "strtok", "atoi", "atol", "atof", "atoll", "setjmp", "longjmp"
     }
 
     violations = []
@@ -73,7 +81,9 @@ def check_banned_functions(node, source_code: str) -> list[dict]:
 
     return violations
 
-#Check declaration function
+## ------------------------------------- Function / Variable Use Rules -----------------------------------------
+
+#Check declaration function (Functions and Variable use)
 def check_declaration(node, source_code: str) -> list[dict]:
     """
     Function to check variable declarations. Enforces two rules: multiple declarations on one line and unitialized variables.
@@ -142,6 +152,8 @@ def check_declaration(node, source_code: str) -> list[dict]:
             })
 
     return violations
+
+## ------------------------------------------- Type Safety Rules ------------------------------------------------
 
 #Check to ensure there are no dangerous type conversions
 def check_implicit_conversion_in_declaration(node, source_code: str, symbol_table: dict) -> list[dict]:
@@ -362,3 +374,23 @@ def check_narrowing_casts(node, source_code: str, symbol_table: dict) -> list[di
 
     return violations
  
+## ---------------------------------------- Control Flow Safety Rules -------------------------------------------
+
+
+
+## Control Flow Safety Rules
+# - No Goto <-- DONE
+# - no break; continue inside switch statements
+# - all switch statements must have a default
+# - No recursion
+
+## Memory Safety
+# - No malloc, calloc, or free statements (dynamic memory allocation not allowed)
+# - No use of NULL without type context
+# - No object definitions in header files
+
+## Function and Variable Use
+# - No unused variables / functions
+# - No global variables unless const
+# - No side effects in function arguments
+
