@@ -76,6 +76,7 @@ def run_file_lint(file_path: Path, lang: str) -> list[dict]:
         tree, source = parser_module.parse_file(file_path, lang)
         symbol_table = {}
         violations += c_rules.walk(tree.root_node, source, symbol_table)
+        violations += c_rules.check_recursion(tree.root_node, source)
         if violations:
             for v in violations:
                 print(f"🚫 {file_path}:{v['line']}: {v['message']}")

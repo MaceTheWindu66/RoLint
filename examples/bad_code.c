@@ -27,6 +27,9 @@ void test() {
     x = (short)b;
 
     int temp = 42;                // 🚨 defined at global scope, used only here
+
+    test();
+
     return;
     temp += 1;                    // 🚨 dead code
 }

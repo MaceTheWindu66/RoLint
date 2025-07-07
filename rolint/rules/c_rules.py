@@ -41,8 +41,11 @@ def walk(node, source_code:str, symbol_table: dict) -> list[dict]:
 
     for child in node.children:
         violations += walk(child, source_code, symbol_table)
+        
 
     return violations
+
+
 
 ## ------------------------------------ Library and Language Use Rules -----------------------------------------
 
@@ -380,6 +383,7 @@ def check_narrowing_casts(node, source_code: str, symbol_table: dict) -> list[di
  
 ## ---------------------------------------- Control Flow Safety Rules -------------------------------------------
 
+#Ban unsafe switch statement practices
 def check_switch_statement(node, source_code: str) -> list[dict]:
     violations = []
 
@@ -413,7 +417,7 @@ def check_switch_statement(node, source_code: str) -> list[dict]:
 
     return violations
 
-
+# Check to make sure we are not using break or continue in standalone switch cases. danger of undefined logic
 def check_break_continue_in_switch(node, source_code: str) -> list[dict]:
     violations = []
     current = node.parent
@@ -431,7 +435,7 @@ def check_break_continue_in_switch(node, source_code: str) -> list[dict]:
                     return violations  # This switch is inside a loop – allow
                 loop_above = loop_above.parent
 
-            # If no loop found enclosing switch → banned
+            # If no loop found enclosing switch -> banned
             violations.append({
                 "line": node.start_point[0] + 1,
                 "message": f"Usage of '{node.type.replace('_statement', '')}' inside a switch statement is banned. Use explicit control flow instead."
@@ -442,12 +446,37 @@ def check_break_continue_in_switch(node, source_code: str) -> list[dict]:
 
     return violations
 
+# Ban Recursion (called outside of walk function in main)
+def check_recursion(root_node, source_code: bytes) -> list[dict]:
+    print("Checking recursion")
+    from rolint.rules.func_analysis_c import (
+        collect_function_definitions,
+        build_call_graph,
+        detect_recursive_functions
+    )
+
+    violations = []
+    source_str = source_code.decode("utf-8")
+
+    functions = collect_function_definitions(root_node, source_code)
+    call_graph = build_call_graph(functions, source_code)
+    recursive_funcs = detect_recursive_functions(call_graph)
+
+    for name in recursive_funcs:
+        body = functions.get(name)
+        if body:
+            violations.append({
+                "line": body.start_point[0] + 1,
+                "message": f"Recursive function '{name}' is banned. Use an iterative alternative."
+            })
+
+    return violations
 
 
 ## Control Flow Safety Rules
 # - No Goto <-- DONE
-# - no break; continue inside switch statements
-# - all switch statements must have a default
+# - no break; continue inside switch statements <-- DONE
+# - all switch statements must have a default <-- DONE
 # - No recursion
 
 ## Memory Safety
