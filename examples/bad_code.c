@@ -4,18 +4,27 @@
 char global_buf[100];
 
 void test() {
-    
+
     int a;
     int b = 0;
     int c = 0, d = 5;
+    int e = 3.14;
+    short s = 1;
 
+
+    b = s;
+
+    
     char buf[100];
     gets(buf);                     // 🚨 banned: gets
     strcpy(global_buf, buf);      // 🚨 banned: strcpy
     sprintf(buf, "Hello %s", buf); // 🚨 banned: sprintf
 
+    b = 4.2;
     int x = 5;
     printf("%d\n", x++);          // 🚨 side effect in function arg
+
+    x = (short)b;
 
     int temp = 42;                // 🚨 defined at global scope, used only here
     return;

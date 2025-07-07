@@ -42,6 +42,7 @@ def run_linter(path: Path, lang: str = None, output_format: str = "text"):
             print(f"\n🔧 Linting {len(files)} {lang.upper()} file(s):")
             for f in files:
                 print(f"  - {f}")
+                
                 violations += run_file_lint(f, lang)
         
         #Exit with status 1 code if there are violations to prevent commit
@@ -73,7 +74,8 @@ def run_file_lint(file_path: Path, lang: str) -> list[dict]:
     violations = []
     if lang == "c":
         tree, source = parser_module.parse_file(file_path, lang)
-        violations += c_rules.walk(tree.root_node, source)
+        symbol_table = {}
+        violations += c_rules.walk(tree.root_node, source, symbol_table)
         if violations:
             for v in violations:
                 print(f"🚫 {file_path}:{v['line']}: {v['message']}")
