@@ -12,6 +12,9 @@ def walk(node, source_code:str, symbol_table: dict) -> list[dict]:
 
         #Check expression call to see if function is banned
         violations += check_banned_functions(node, source_code)
+        
+        #Check for side effects in function call
+        violations += check_side_effects_in_func_call(node, source_code)
 
     elif node.type == "declaration":  
         #Check declarations rules (multiple conversions, no initialization)  
@@ -60,7 +63,8 @@ def check_banned_functions(node, source_code: str) -> list[dict]:
     banned_functions = {
         "gets", "strcpy", "strncpy", "printf", "sprintf", "vsprintf",
         "strcat", "strncat", "scanf", "sscanf", "fscanf",
-        "strtok", "atoi", "atol", "atof", "atoll", "setjmp", "longjmp"
+        "strtok", "atoi", "atol", "atof", "atoll", "setjmp", "longjmp",
+        "malloc", "calloc", "free", "realloc"
     }
 
     violations = []
@@ -381,7 +385,7 @@ def check_narrowing_casts(node, source_code: str, symbol_table: dict) -> list[di
 
     return violations
  
-## ---------------------------------------- Control Flow Safety Rules -------------------------------------------
+## ---------------------------------------- Control Flow Safety Rules ----------------------------------------------------
 
 #Ban unsafe switch statement practices
 def check_switch_statement(node, source_code: str) -> list[dict]:
@@ -472,12 +476,53 @@ def check_recursion(root_node, source_code: bytes) -> list[dict]:
 
     return violations
 
+# --------------------------------------- Function And Variable Use Rules -----------------------------------------------
+
+def check_side_effects_in_func_call(node, source_code:str) -> list[dict]:
+    violations = []
+
+    #Functions that I will allow as I know they don't have side effects to data
+    known_pure_functions = {"abs", "sqrt", "strlen", "toupper", "tolower"}
+
+    args_node = node.child_by_field_name("arguments")
+    if not args_node:
+        return violations
+    
+    # Recursive walk through all node's children to ensure no side effects
+    def contains_side_effects(n):
+        if n.type in {"assignment_expression", "update_expression"}:
+            return True
+        elif n.type == "call_expression":
+            func_name_node = n.child_by_field_name("function")
+            if func_name_node:
+                func_name = source_code[func_name_node.start_byte:func_name_node.end_byte].decode("utf-8")
+                if func_name in known_pure_functions:
+                    return False 
+            return True
+        for child in n.children:
+            if contains_side_effects(child):
+                return True
+        return False
+    
+    for arg in args_node.named_children:
+        if contains_side_effects(arg):
+            func_node = node.child_by_field_name("function")
+            func_name = source_code[func_node.start_byte:func_node.end_byte].decode("utf-8") if func_node else "unknown"
+        
+            violations.append({
+                "line": func_node.start_point[0] + 1,
+                "message": f"Side effect or function call in arguments for function call '{func_name}'."
+            })
+
+
+    return violations
+
 
 ## Control Flow Safety Rules
 # - No Goto <-- DONE
 # - no break; continue inside switch statements <-- DONE
 # - all switch statements must have a default <-- DONE
-# - No recursion
+# - No recursion < -- DONE
 
 ## Memory Safety
 # - No malloc, calloc, or free statements (dynamic memory allocation not allowed)

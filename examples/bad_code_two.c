@@ -16,9 +16,11 @@ void test() {
     sprintf(buf, "Hello %s", buf); // 🚨 banned: sprintf
     
     int x = 5;
-    printf("%d\n", x++);          // 🚨 side effect in function arg
+    printf("%d\n", toupper(x));          // 🚨 side effect in function arg that is known to be pure. False positive test ( i know you cant do toupper on an int its just a test)
 
     int temp = 42;                // 🚨 defined at global scope, used only here
+
+    
 
     switch(x){
         case 1:
