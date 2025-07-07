@@ -8,6 +8,7 @@ void test() {
     int a;
     int b = 0;
     int c = 0, d = 5;
+    int arr[10];
 
     char buf[100];
     gets(buf);                     // 🚨 banned: gets
@@ -18,6 +19,20 @@ void test() {
     printf("%d\n", x++);          // 🚨 side effect in function arg
 
     int temp = 42;                // 🚨 defined at global scope, used only here
+
+    switch(x){
+        case 1:
+            break;
+        case 2:
+            continue;
+    }
+
+    for(int i = 0; i < 10; i++){
+        switch(arr[i]) {
+            case 1: break;
+        }
+    }
+
 
     if (x == 3){
         goto error;

@@ -33,6 +33,10 @@ def walk(node, source_code:str, symbol_table: dict) -> list[dict]:
             "line": node.start_point[0] + 1,
             "message": f"Usage of 'goto' is banned. Please use structured control flow logic."
         })
+    
+    elif node.type == "switch_statement":
+        violations += check_switch_statement(node, source_code)
+    
 
 
     for child in node.children:
@@ -375,6 +379,68 @@ def check_narrowing_casts(node, source_code: str, symbol_table: dict) -> list[di
     return violations
  
 ## ---------------------------------------- Control Flow Safety Rules -------------------------------------------
+
+def check_switch_statement(node, source_code: str) -> list[dict]:
+    violations = []
+
+    has_default = False
+
+    for child in node.named_children:
+        if child.type == "default_label":
+            has_default = True
+
+        def walk_switch_subtree(n):
+            nonlocal has_default, violations
+
+            if n.type == "default_label":
+                has_default = True
+
+            elif n.type in {"break_statement", "continue_statement"}:
+                violations += check_break_continue_in_switch(n, source_code)
+
+            for child in n.children:
+                walk_switch_subtree(child)
+
+    walk_switch_subtree(node)
+
+    # TODO: add fallthrough detection here
+
+    if not has_default:
+        violations.append({
+            "line": node.start_point[0] + 1,
+            "message": "Switch statement missing 'default' case."
+        })
+
+    return violations
+
+
+def check_break_continue_in_switch(node, source_code: str) -> list[dict]:
+    violations = []
+    current = node.parent
+
+    while current:
+        if current.type in {"for_statement", "while_statement", "do_statement"}:
+            # Found loop first – allow
+            return violations
+
+        if current.type == "switch_statement":
+            # Found switch before loop – check if *another* loop is above this
+            loop_above = current.parent
+            while loop_above:
+                if loop_above.type in {"for_statement", "while_statement", "do_statement"}:
+                    return violations  # This switch is inside a loop – allow
+                loop_above = loop_above.parent
+
+            # If no loop found enclosing switch → banned
+            violations.append({
+                "line": node.start_point[0] + 1,
+                "message": f"Usage of '{node.type.replace('_statement', '')}' inside a switch statement is banned. Use explicit control flow instead."
+            })
+            return violations
+
+        current = current.parent
+
+    return violations
 
 
 
