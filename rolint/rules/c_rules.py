@@ -4,7 +4,7 @@
 """
 
 #Wanna keep this in O(nlogn) time at max (traversing the tree) Recursively walk the tree to find any violations..
-def walk(node, source_code:str, symbol_table: dict) -> list[dict]:
+def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_table: dict) -> list[dict]:
 
     violations = []
 
@@ -20,8 +20,17 @@ def walk(node, source_code:str, symbol_table: dict) -> list[dict]:
         #Check declarations rules (multiple conversions, no initialization)  
         violations += check_declaration(node, source_code)
 
+
         #Check type conversions
         violations += check_implicit_conversion_in_declaration(node, source_code, symbol_table)
+
+        # Track declared vars
+        for child in node.named_children:
+            if child.type == "init_declarator":
+                ident = child.child_by_field_name("declarator")
+                if ident and ident.type == "identifier":
+                    name = source_code[ident.start_byte:ident.end_byte].decode("utf-8").strip()
+                    declared_table["variables"][name] = node.start_point[0] + 1
 
     elif node.type == "assignment_expression":
         violations += check_implicit_conversion_in_assignment(node, source_code, symbol_table)
@@ -31,7 +40,7 @@ def walk(node, source_code:str, symbol_table: dict) -> list[dict]:
         violations += check_narrowing_casts(node, source_code, symbol_table)
     
     elif node.type == "goto_statement":
-        #Specifically banning goto statements, which are their own nodes in tree_sitter
+        #Specifically banning goto statements
         violations.append({
             "line": node.start_point[0] + 1,
             "message": f"Usage of 'goto' is banned. Please use structured control flow logic."
@@ -39,12 +48,34 @@ def walk(node, source_code:str, symbol_table: dict) -> list[dict]:
     
     elif node.type == "switch_statement":
         violations += check_switch_statement(node, source_code)
+
+    ##Checks for unused funcs or vars
+    elif node.type == "function_definition":
+        func_node = node.child_by_field_name("declarator")
+        if func_node:
+            ident_node = func_node.child_by_field_name("declarator")
+            if ident_node and ident_node.type == "identifier":
+                name = source_code[ident_node.start_byte:ident_node.end_byte].decode("utf-8").strip()
+                declared_table["functions"][name] = node.start_point[0] + 1
+    elif node.type == "identifier":
+        name = source_code[node.start_byte:node.end_byte].decode("utf-8").strip()
+
+        # Only mark as used if not part of a declaration
+        parent = node.parent
+        if parent and parent.type != "init_declarator" and parent.type != "declaration":
+            if name in declared_table["variables"]:
+                used_table["variables"].add(name)
+            if name in declared_table["functions"]:
+                used_table["functions"].add(name)
+
     
 
 
     for child in node.children:
-        violations += walk(child, source_code, symbol_table)
+        violations += walk(child, source_code, symbol_table, declared_table, used_table)
         
+
+
 
     return violations
 
@@ -161,6 +192,68 @@ def check_declaration(node, source_code: str) -> list[dict]:
                 "line": node.start_point[0] + 1,
                 "message": f"Variable '{var_name}' declared without initialization."
             })
+
+    return violations
+
+# Ban side effects in function calls (ex. printf(x++) or printf(getchar()) is unallowed)
+def check_side_effects_in_func_call(node, source_code:str) -> list[dict]:
+    violations = []
+
+    #Functions that I will allow as I know they don't have side effects to data
+    known_pure_functions = {"abs", "sqrt", "strlen", "toupper", "tolower"}
+
+    args_node = node.child_by_field_name("arguments")
+    if not args_node:
+        return violations
+    
+    # Recursive walk through all node's children to ensure no side effects
+    def contains_side_effects(n):
+        if n.type in {"assignment_expression", "update_expression"}:
+            return True
+        elif n.type == "call_expression":
+            func_name_node = n.child_by_field_name("function")
+            if func_name_node:
+                func_name = source_code[func_name_node.start_byte:func_name_node.end_byte].decode("utf-8")
+                if func_name in known_pure_functions:
+                    return False 
+            return True
+        for child in n.children:
+            if contains_side_effects(child):
+                return True
+        return False
+    
+    for arg in args_node.named_children:
+        if contains_side_effects(arg):
+            func_node = node.child_by_field_name("function")
+            func_name = source_code[func_node.start_byte:func_node.end_byte].decode("utf-8") if func_node else "unknown"
+        
+            violations.append({
+                "line": func_node.start_point[0] + 1,
+                "message": f"Side effect or function call in arguments for function call '{func_name}'."
+            })
+
+
+    return violations
+
+# Check to make sure everything that is declared is used
+def check_unused(declared_symbols, used_symbols):
+    violations = []
+
+    unused_vars = set(declared_symbols["variables"].keys()) - used_symbols["variables"]
+    for name in unused_vars:
+        line = declared_symbols["variables"][name]
+        violations.append({
+            "line": line,
+            "message": f"Variable '{name}' declared but never used."
+        })
+
+    unused_funcs = set(declared_symbols["functions"].keys()) - used_symbols["functions"]
+    for name in unused_funcs:
+        line = declared_symbols["functions"][name]
+        violations.append({
+            "line": line,
+            "message": f"Function '{name}' defined but never called."
+        })
 
     return violations
 
@@ -452,7 +545,6 @@ def check_break_continue_in_switch(node, source_code: str) -> list[dict]:
 
 # Ban Recursion (called outside of walk function in main)
 def check_recursion(root_node, source_code: bytes) -> list[dict]:
-    print("Checking recursion")
     from rolint.rules.func_analysis_c import (
         collect_function_definitions,
         build_call_graph,
@@ -476,61 +568,23 @@ def check_recursion(root_node, source_code: bytes) -> list[dict]:
 
     return violations
 
-# --------------------------------------- Function And Variable Use Rules -----------------------------------------------
+## ------------------------------------------------------------------------------------------------------------------------
 
-def check_side_effects_in_func_call(node, source_code:str) -> list[dict]:
-    violations = []
-
-    #Functions that I will allow as I know they don't have side effects to data
-    known_pure_functions = {"abs", "sqrt", "strlen", "toupper", "tolower"}
-
-    args_node = node.child_by_field_name("arguments")
-    if not args_node:
-        return violations
-    
-    # Recursive walk through all node's children to ensure no side effects
-    def contains_side_effects(n):
-        if n.type in {"assignment_expression", "update_expression"}:
-            return True
-        elif n.type == "call_expression":
-            func_name_node = n.child_by_field_name("function")
-            if func_name_node:
-                func_name = source_code[func_name_node.start_byte:func_name_node.end_byte].decode("utf-8")
-                if func_name in known_pure_functions:
-                    return False 
-            return True
-        for child in n.children:
-            if contains_side_effects(child):
-                return True
-        return False
-    
-    for arg in args_node.named_children:
-        if contains_side_effects(arg):
-            func_node = node.child_by_field_name("function")
-            func_name = source_code[func_node.start_byte:func_node.end_byte].decode("utf-8") if func_node else "unknown"
-        
-            violations.append({
-                "line": func_node.start_point[0] + 1,
-                "message": f"Side effect or function call in arguments for function call '{func_name}'."
-            })
-
-
-    return violations
 
 
 ## Control Flow Safety Rules
 # - No Goto <-- DONE
 # - no break; continue inside switch statements <-- DONE
 # - all switch statements must have a default <-- DONE
-# - No recursion < -- DONE
+# - No recursion <-- DONE
 
 ## Memory Safety
-# - No malloc, calloc, or free statements (dynamic memory allocation not allowed)
-# - No use of NULL without type context
-# - No object definitions in header files
+# - No malloc, calloc, or free statements (dynamic memory allocation not allowed) <-- DONE 
+# - No use of NULL without type context 
+# - No object definitions in header files 
 
-## Function and Variable Use
-# - No unused variables / functions
-# - No global variables unless const
-# - No side effects in function arguments
+## Function and Variable Use 
+# - No unused variables / functions <-- DONE
+# - No global variables unless const 
+# - No side effects in function arguments <-- DONE  
 

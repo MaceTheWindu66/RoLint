@@ -74,9 +74,20 @@ def run_file_lint(file_path: Path, lang: str) -> list[dict]:
     violations = []
     if lang == "c":
         tree, source = parser_module.parse_file(file_path, lang)
+        ## Tables for tracking variable contexts.
         symbol_table = {}
-        violations += c_rules.walk(tree.root_node, source, symbol_table)
+        declared_table = {
+            "variables": {}, 
+            "functions": {}
+        }
+        used_table = {
+            "variables": set(),
+            "functions": set()
+        }
+
+        violations += c_rules.walk(tree.root_node, source, symbol_table, declared_table, used_table)
         violations += c_rules.check_recursion(tree.root_node, source)
+        violations += c_rules.check_unused(declared_table, used_table)
         if violations:
             for v in violations:
                 print(f"🚫 {file_path}:{v['line']}: {v['message']}")
