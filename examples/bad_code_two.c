@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 
-char global_buf[100];
+const char global_buf[100];
+extern char lol[10];
 
 void test() {
     

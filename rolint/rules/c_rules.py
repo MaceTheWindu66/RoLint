@@ -4,12 +4,11 @@
 """
 
 #Wanna keep this in O(nlogn) time at max (traversing the tree) Recursively walk the tree to find any violations..
-def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_table: dict) -> list[dict]:
+def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_table: dict, is_global_var) -> list[dict]:
 
     violations = []
 
     if node.type == "call_expression":
-
         #Check expression call to see if function is banned
         violations += check_banned_functions(node, source_code)
         
@@ -17,6 +16,10 @@ def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_t
         violations += check_side_effects_in_func_call(node, source_code)
 
     elif node.type == "declaration":  
+
+        if is_global_var:
+            violations += check_global(node, source_code)
+
         #Check declarations rules (multiple conversions, no initialization)  
         violations += check_declaration(node, source_code)
 
@@ -51,6 +54,7 @@ def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_t
 
     ##Checks for unused funcs or vars
     elif node.type == "function_definition":
+        is_global_var = False
         func_node = node.child_by_field_name("declarator")
         if func_node:
             ident_node = func_node.child_by_field_name("declarator")
@@ -72,7 +76,7 @@ def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_t
 
 
     for child in node.children:
-        violations += walk(child, source_code, symbol_table, declared_table, used_table)
+        violations += walk(child, source_code, symbol_table, declared_table, used_table, is_global_var)
         
 
 
@@ -83,6 +87,7 @@ def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_t
 
 ## ------------------------------------ Library and Language Use Rules -----------------------------------------
 
+# Check if a function call is banned (strcpy, gets, etc)
 def check_banned_functions(node, source_code: str) -> list[dict]:
 
     """
@@ -118,7 +123,7 @@ def check_banned_functions(node, source_code: str) -> list[dict]:
             violations.append({
                 "line": node.start_point[0] + 1,
                 "function": func_name,
-                "message": f"Usage of banned function '{func_name}' is banned. Please use safer alternative."
+                "message": f"Usage of function '{func_name}' is banned. Please use safer alternative."
             })
 
     return violations
@@ -254,6 +259,41 @@ def check_unused(declared_symbols, used_symbols):
             "line": line,
             "message": f"Function '{name}' defined but never called."
         })
+
+    return violations
+
+# Check if a global var is marked as a constant or volatile
+def check_global(node, source_code: str) -> list[dict]:
+    violations = []
+
+
+    # Gather all modifier keywords to check for const or volatile
+    modifiers = set()
+    for child in node.children:
+        if child.type == "type_qualifier" or child.type == "storage_class_specifier":
+            qualifier = source_code[child.start_byte:child.end_byte].decode("utf-8")
+            modifiers.add(qualifier)
+
+    is_cleared = "const" in modifiers or "volatile" in modifiers or "static" in modifiers or "extern" in modifiers
+
+    # If it doesn't have const or volatile, extract the node info and add to violations
+    if not is_cleared:
+        for child in node.named_children:
+            ident = None
+            if child.type == "init_declarator":
+                ident = child.child_by_field_name("declarator")
+            elif child.type == "array_declarator":
+                ident = child.child_by_field_name("declarator")
+
+            while ident and ident.type in {"pointer_declarator", "array_declarator"}:
+                ident = ident.child_by_field_name("declarator")
+
+            if ident and ident.type == "identifier":
+                var_name = source_code[ident.start_byte:ident.end_byte].decode("utf-8")
+                violations.append({
+                    "line": node.start_point[0] + 1,
+                    "message": f"Global variable '{var_name}' must be marked 'const', 'extern', 'static', or 'volatile'."
+                })
 
     return violations
 
@@ -585,6 +625,6 @@ def check_recursion(root_node, source_code: bytes) -> list[dict]:
 
 ## Function and Variable Use 
 # - No unused variables / functions <-- DONE
-# - No global variables unless const 
+# - No global variables unless const <-- Done
 # - No side effects in function arguments <-- DONE  
 

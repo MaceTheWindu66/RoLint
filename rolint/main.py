@@ -85,7 +85,7 @@ def run_file_lint(file_path: Path, lang: str) -> list[dict]:
             "functions": set()
         }
 
-        violations += c_rules.walk(tree.root_node, source, symbol_table, declared_table, used_table)
+        violations += c_rules.walk(tree.root_node, source, symbol_table, declared_table, used_table, is_global_var=True)
         violations += c_rules.check_recursion(tree.root_node, source)
         violations += c_rules.check_unused(declared_table, used_table)
         if violations:
