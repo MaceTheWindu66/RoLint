@@ -51,6 +51,8 @@ def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_t
     
     elif node.type == "switch_statement":
         violations += check_switch_statement(node, source_code)
+    elif node.type == "preproc_function_def":
+        violations += check_function_like_macros(node, source_code)
 
     ##Checks for unused funcs or vars
     elif node.type == "function_definition":
@@ -61,7 +63,9 @@ def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_t
             if ident_node and ident_node.type == "identifier":
                 name = source_code[ident_node.start_byte:ident_node.end_byte].decode("utf-8").strip()
                 declared_table["functions"][name] = node.start_point[0] + 1
+
     elif node.type == "identifier":
+
         name = source_code[node.start_byte:node.end_byte].decode("utf-8").strip()
 
         # Only mark as used if not part of a declaration
@@ -70,16 +74,12 @@ def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_t
             if name in declared_table["variables"]:
                 used_table["variables"].add(name)
             if name in declared_table["functions"]:
-                used_table["functions"].add(name)
-
-    
+                used_table["functions"].add(name) 
 
 
     for child in node.children:
         violations += walk(child, source_code, symbol_table, declared_table, used_table, is_global_var)
         
-
-
 
     return violations
 
@@ -296,6 +296,22 @@ def check_global(node, source_code: str) -> list[dict]:
                 })
 
     return violations
+
+#Check for function like macros
+def check_function_like_macros(node, source_code: str) -> list[dict]:
+    violations = []
+
+    name_node = node.child_by_field_name("name")
+    if name_node:
+        name = source_code[name_node.start_byte:name_node.end_byte].decode("utf-8")
+        violations.append({
+            "line": node.start_point[0] + 1,
+            "message": f"Function-like macro '{name}' is banned. Use inline functions instead."
+        })
+
+    return violations
+
+
 
 ## ------------------------------------------- Type Safety Rules ------------------------------------------------
 
@@ -625,6 +641,6 @@ def check_recursion(root_node, source_code: bytes) -> list[dict]:
 
 ## Function and Variable Use 
 # - No unused variables / functions <-- DONE
-# - No global variables unless const <-- Done
+# - No global variables unless const <-- DONE
 # - No side effects in function arguments <-- DONE  
 

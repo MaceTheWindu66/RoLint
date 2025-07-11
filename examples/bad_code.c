@@ -2,6 +2,9 @@
 #include <string.h>
 
 char global_buf[100];
+#define MAX_SIZE 100;
+#define SQUARE(x) ((x)*(x))
+
 
 void test() {
 
