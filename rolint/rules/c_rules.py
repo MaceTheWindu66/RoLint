@@ -306,7 +306,7 @@ def check_function_like_macros(node, source_code: str) -> list[dict]:
         name = source_code[name_node.start_byte:name_node.end_byte].decode("utf-8")
         violations.append({
             "line": node.start_point[0] + 1,
-            "message": f"Function-like macro '{name}' is banned. Use inline functions instead."
+            "message": f"Function-like macro '{name}' detected. Usage of function-like macros is banned. Use inline functions instead."
         })
 
     return violations
