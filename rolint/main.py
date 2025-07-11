@@ -48,6 +48,7 @@ def run_linter(path: Path, lang: str = None, output_format: str = "text"):
         #Exit with status 1 code if there are violations to prevent commit
         if violations:
             print("Blocking Commit.")
+            print(" - John 8:11")
             sys.exit(1)
         else:
             sys.exit(0)
@@ -63,6 +64,7 @@ def run_linter(path: Path, lang: str = None, output_format: str = "text"):
         run_file_lint(path, inferred_lang)
         if violations:
             print("Blocking commit.")
+            print(" - John 8:11")
             sys.exit(1)
         else:
             sys.exit(0)
@@ -85,12 +87,18 @@ def run_file_lint(file_path: Path, lang: str) -> list[dict]:
             "functions": set()
         }
 
-        violations += c_rules.walk(tree.root_node, source, symbol_table, declared_table, used_table, is_global_var=True)
-        violations += c_rules.check_recursion(tree.root_node, source)
-        violations += c_rules.check_unused(declared_table, used_table)
+        if file_path.suffix in {".h", ".hpp"}:
+            violations += c_rules.check_header_guard(source, str(file_path))
+            violations += c_rules.check_object_definitions_in_header(tree, source)
+        else:
+            violations += c_rules.walk(tree.root_node, source, symbol_table, declared_table, used_table, is_global_var=True)
+            violations += c_rules.check_recursion(tree.root_node, source)
+            violations += c_rules.check_unused(declared_table, used_table)
+        
         if violations:
             for v in violations:
                 print(f"🚫 {file_path}:{v['line']}: {v['message']}")
+
     elif lang in {"cpp", "python"}:
         print(f"ℹ️ Linting for {lang.upper()} not yet implemented.")
     else:

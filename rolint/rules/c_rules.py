@@ -312,7 +312,6 @@ def check_function_like_macros(node, source_code: str) -> list[dict]:
     return violations
 
 
-
 ## ------------------------------------------- Type Safety Rules ------------------------------------------------
 
 #Check to ensure there are no dangerous type conversions
@@ -625,6 +624,69 @@ def check_recursion(root_node, source_code: bytes) -> list[dict]:
     return violations
 
 ## ------------------------------------------------------------------------------------------------------------------------
+
+## ----------------------------------------------- HEADER RULES -----------------------------------------------------------
+
+def check_header_guard(source_code: bytes, file_path: str) -> list[dict]:
+    lines = source_code.splitlines()
+    violations = []
+
+    guard_macro = None
+
+    # Look for #ifndef and matching #define in the first 10 lines
+    for i, line in enumerate(lines[:10]):
+        stripped = line.strip().decode("utf-8")  # ✅ decode from bytes to str
+        if stripped.startswith("#ifndef"):
+            parts = stripped.split()
+            if len(parts) == 2:
+                guard_macro = parts[1]
+
+        elif stripped.startswith("#define") and guard_macro:
+            if guard_macro not in stripped:
+                guard_macro = None  # Reset if mismatch
+
+    # Look for #endif near end
+    has_endif = any(
+        line.strip().decode("utf-8").startswith("#endif") for line in lines[-10:]
+    )
+
+    if not (guard_macro and has_endif):
+        violations.append({
+            "line": 1,
+            "message": f"Header file '{file_path}' is missing proper include guards (#ifndef / #define / #endif)."
+        })
+
+    return violations
+
+
+def check_object_definitions_in_header(tree, source_code: str) -> list[dict]:
+    violations = []
+
+    def is_function_declaration(node):
+        return node.type == "function_declaration"
+
+    def walk(n):
+        nonlocal violations
+        if n.type == "declaration":
+            # Check if this is a definition (i.e., has init_declarator with value)
+            for child in n.named_children:
+                if child.type == "init_declarator":
+                    value = child.child_by_field_name("value")
+                    if value is not None:
+                        ident = child.child_by_field_name("declarator")
+                        if ident:
+                            name = source_code[ident.start_byte:ident.end_byte].decode("utf-8")
+                            violations.append({
+                                "line": n.start_point[0] + 1,
+                                "message": f"Object '{name}' defined in header file. Object definitions are banned in headers."
+                            })
+        for child in n.children:
+            walk(child)
+
+    walk(tree.root_node)
+    return violations
+
+
 
 
 
