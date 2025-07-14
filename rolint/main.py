@@ -2,6 +2,7 @@ from pathlib import Path
 from collections import defaultdict
 from rolint.parser import parser as parser_module
 from rolint.rules import c_rules
+from rolint.rules.python_rules import run_python_linter
 import sys
 
 
@@ -87,7 +88,7 @@ def run_file_lint(file_path: Path, lang: str) -> list[dict]:
             "functions": set()
         }
 
-        if file_path.suffix in {".h", ".hpp"}:
+        if file_path.suffix in {".h"}:
             violations += c_rules.check_header_guard(source, str(file_path))
             violations += c_rules.check_object_definitions_in_header(tree, source)
         else:
@@ -99,8 +100,11 @@ def run_file_lint(file_path: Path, lang: str) -> list[dict]:
             for v in violations:
                 print(f"🚫 {file_path}:{v['line']}: {v['message']}")
 
-    elif lang in {"cpp", "python"}:
+    elif lang in {"cpp"}:
         print(f"ℹ️ Linting for {lang.upper()} not yet implemented.")
+    elif lang in {"python"}:
+        violations += run_python_linter(file_path)
+        print("linting python")
     else:
         print(f"⚠️ Unknown language: {lang}")
     
