@@ -105,6 +105,9 @@ def run_file_lint(file_path: Path, lang: str) -> list[dict]:
     elif lang in {"python"}:
         violations += run_python_linter(file_path)
         print("linting python")
+        if violations:
+            for v in violations:
+                print(f"🚫 {file_path}:{v['line']}: {v['message']}")
     else:
         print(f"⚠️ Unknown language: {lang}")
     
