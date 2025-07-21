@@ -3,6 +3,7 @@ from collections import defaultdict
 from rolint.parser import parser as parser_module
 from rolint.rules import c_rules
 from rolint.rules.python_rules import run_python_linter
+from rolint.rules import cpp_rules
 import sys
 
 
@@ -101,10 +102,28 @@ def run_file_lint(file_path: Path, lang: str) -> list[dict]:
                 print(f"🚫 {file_path}:{v['line']}: {v['message']}")
 
     elif lang in {"cpp"}:
-        print(f"ℹ️ Linting for {lang.upper()} not yet implemented.")
+        tree, source = parser_module.parse_file(file_path, lang)
+        ## Tables for tracking variable contexts.
+        symbol_table = {}
+        declared_table = {
+            "variables": {}, 
+            "functions": {}
+        }
+        used_table = {
+            "variables": set(),
+            "functions": set()
+        }
+
+        
+        violations += cpp_rules.walk(tree.root_node, source, symbol_table, declared_table, used_table, is_global_var=True)
+
+        if violations:
+            for v in violations:
+                print(f"🚫 {file_path}:{v['line']}: {v['message']}")
+
     elif lang in {"python"}:
         violations += run_python_linter(file_path)
-        print("linting python")
+        
         if violations:
             for v in violations:
                 print(f"🚫 {file_path}:{v['line']}: {v['message']}")

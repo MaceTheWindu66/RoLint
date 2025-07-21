@@ -42,7 +42,12 @@ class PyRules(ast.NodeVisitor):
     # Rule for static type checking
     def visit_FunctionDef(self, node):
         self.current_function = node
-        for arg in node.args.args + node.args.kwonlyargs:
+
+        args = node.args.args
+        if args and args[0].arg == "self":
+            args = args[1:]
+
+        for arg in args + node.args.kwonlyargs:
             #Searching arguments for type annotations
             if arg.annotation is None:
                 self.add(arg, f"Paramater '{arg.arg}' missing type annotation. Please specify type.")

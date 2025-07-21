@@ -3,7 +3,6 @@
     unsafe practices, etc.
 """
 
-#Wanna keep this in O(nlogn) time at max (traversing the tree) Recursively walk the tree to find any violations..
 def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_table: dict, is_global_var) -> list[dict]:
 
     violations = []
@@ -42,6 +41,11 @@ def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_t
         violations += check_casting(node, source_code, symbol_table)
         violations += check_narrowing_casts(node, source_code, symbol_table)
     
+    elif node.type == "continue_statement":
+        violations.append({
+            "line": node.start_point[0] + 1,
+            "message": "Use of 'continue' is banned."
+        })
     elif node.type == "goto_statement":
         #Specifically banning goto statements
         violations.append({
@@ -559,7 +563,23 @@ def check_switch_statement(node, source_code: str) -> list[dict]:
 
     walk_switch_subtree(node)
 
-    # TODO: add fallthrough detection here
+    # Check for fallthrough
+    children = [child for child in node.child_by_field_name("body").children if child.type not in {'{', '}'}]
+    current_label = None
+    current_block = []
+
+    for child in children:
+        if child.type in {"case_label", "default_label"}:
+            if current_label is not None:
+                if not block_has_terminator_or_fallthrough_comment(current_block, source_code):
+                    violations.append({
+                        "line": current_label.start_point[0] + 1,
+                        "message": f"Case '{source_code[current_label.start_byte:current_label.end_byte].decode('utf-8').strip()}' falls through implicitly. Add 'break;', 'return;', or comment like '/* fallthrough */'."
+                    })
+            current_label = child
+            current_block = []
+        else:
+            current_block.append(child)
 
     if not has_default:
         violations.append({
@@ -574,29 +594,37 @@ def check_break_continue_in_switch(node, source_code: str) -> list[dict]:
     violations = []
     current = node.parent
 
+    # Find enclosing control structures
+    inside_loop = False
+    inside_switch = False
+
     while current:
         if current.type in {"for_statement", "while_statement", "do_statement"}:
-            # Found loop first – allow
-            return violations
-
+            inside_loop = True
         if current.type == "switch_statement":
-            # Found switch before loop – check if *another* loop is above this
-            loop_above = current.parent
-            while loop_above:
-                if loop_above.type in {"for_statement", "while_statement", "do_statement"}:
-                    return violations  # This switch is inside a loop – allow
-                loop_above = loop_above.parent
-
-            # If no loop found enclosing switch -> banned
-            violations.append({
-                "line": node.start_point[0] + 1,
-                "message": f"Usage of '{node.type.replace('_statement', '')}' inside a switch statement is banned. Use explicit control flow instead."
-            })
-            return violations
-
+            inside_switch = True
+            break
         current = current.parent
+    if node.type == "break_statement":
+        # 'break' is allowed in switch and loop — do not warn
+        pass
 
     return violations
+
+
+# Helper function to detect fallthrough comment to allow for fallthrough
+def block_has_terminator_or_fallthrough_comment(stmts, source_code: str) -> bool:
+    for stmt in reversed(stmts):
+        text = source_code[stmt.start_byte:stmt.end_byte].decode("utf-8").strip()
+
+        if stmt.type in {"break_statement", "return_statement", "goto_statement", "throw_statement"}:
+            return True
+        if "fallthrough" in text.lower():
+            return True
+        if stmt.type != "comment":
+            break  # hit a code statement that's not a terminator
+    return False
+
 
 # Ban Recursion (called outside of walk function in main)
 def check_recursion(root_node, source_code: bytes) -> list[dict]:
@@ -627,6 +655,7 @@ def check_recursion(root_node, source_code: bytes) -> list[dict]:
 
 ## ----------------------------------------------- HEADER RULES -----------------------------------------------------------
 
+# Ensure header guards
 def check_header_guard(source_code: bytes, file_path: str) -> list[dict]:
     lines = source_code.splitlines()
     violations = []
@@ -699,7 +728,7 @@ def check_object_definitions_in_header(tree, source_code: str) -> list[dict]:
 ## Memory Safety
 # - No malloc, calloc, or free statements (dynamic memory allocation not allowed) <-- DONE 
 # - No use of NULL without type context 
-# - No object definitions in header files 
+# - No object definitions in header files <-- DONE
 
 ## Function and Variable Use 
 # - No unused variables / functions <-- DONE
