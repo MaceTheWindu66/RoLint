@@ -24,9 +24,11 @@ RoLint is extremely simple to use. There are 2 "commands" of RoLint:
 > rolint check [OPTIONS] path/to/code.c  <-- To be used on specific files  
 > rolint directory/  <--- To run on a project directory as a whole.
 
+For C/C++, RoLint is to be ran on an uncompiled C/C++ file. RoLint is not built to run off of C/C++ binaries, however their text files. RoLint should be used in conjunction with a compiler for most effective results. The rules for common compilers and this linter have overlap, but cover slightly different areas. 
+
 ### Options for Specific File Linting
 
-When linting a specific file, options must be defined. These options define the language and output.
+When linting a specific file, options must be defined. These options define the language and output. 
 
 > #### Options:
 > 
