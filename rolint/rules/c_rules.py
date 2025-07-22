@@ -663,8 +663,8 @@ def check_header_guard(source_code: bytes, file_path: str) -> list[dict]:
     guard_macro = None
 
     # Look for #ifndef and matching #define in the first 10 lines
-    for i, line in enumerate(lines[:10]):
-        stripped = line.strip().decode("utf-8")  # ✅ decode from bytes to str
+    for i, line in enumerate(lines):
+        stripped = line.strip().decode("utf-8")  #  decode from bytes to str
         if stripped.startswith("#ifndef"):
             parts = stripped.split()
             if len(parts) == 2:
@@ -673,6 +673,8 @@ def check_header_guard(source_code: bytes, file_path: str) -> list[dict]:
         elif stripped.startswith("#define") and guard_macro:
             if guard_macro not in stripped:
                 guard_macro = None  # Reset if mismatch
+            else:
+                break
 
     # Look for #endif near end
     has_endif = any(

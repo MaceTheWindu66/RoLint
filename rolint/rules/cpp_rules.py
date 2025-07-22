@@ -5,6 +5,7 @@ def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_t
     if node.type == "call_expression":
         violations += check_banned_funcs(node, source_code)
 
+
     # Ban delete and new
     elif node.type == "new_expression":
         violations.append({
@@ -84,52 +85,40 @@ def check_banned_funcs(node, source_code: str) -> list[dict]:
     return violations
 
 def check_switch_statement(node, source_code: str) -> list[dict]:
-
-    """
-    Check to ensure switch statements have no implicit fallthroughs and ensure existence of default case
-    """
     violations = []
     has_default = False
-    in_case_block = False
-    has_fall = False
-    # Get the compound_statement (the body of the switch)
-    body = node.child_by_field_name("body")
 
+    body = node.child_by_field_name("body")
     if body is None:
         return violations
 
-    def walk_switch_subtree(n):
+    # Flatten to look at named children (statements in body)
+    children = body.named_children
+    last_case = None
+    case_block_has_exit = False
 
-        nonlocal has_default
-        nonlocal in_case_block
-        nonlocal violations
-        nonlocal has_fall
-        
-        if n.type == "case":
-            if in_case_block and not has_fall:
-                violations.append({
-                    "line": n.start_point[0] + 1,
-                    "message": "Switch case statement has implicit fallthrough. Add 'break;', 'return;', or '[[fallthrough]]'"
-                })
-            in_case_block = True
-            has_fall = False
-
-        if n.type == "break" or n.type == "return":
-            has_fall = True
-        if n.type == "continue":
-            violations.append({
-                "line": n.start_point[0] + 1,
-                "message": "Use of 'continue' is banned."
-            })
-
-        if n.type == "default":
+    for i, child in enumerate(children):
+        if child.type == "default_label":
             has_default = True
 
-        for child in n.children:
-            walk_switch_subtree(child)
+        elif child.type == "case_label":
+            if last_case is not None and not case_block_has_exit:
+                # If previous case block ended with no break/return
+                violations.append({
+                    "line": child.start_point[0] + 1,
+                    "message": "Switch case statement has implicit fallthrough. Add 'break;', 'return;', or '[[fallthrough]]'"
+                })
+            last_case = child
+            case_block_has_exit = False
 
-    
-    walk_switch_subtree(body)
+        elif child.type in {"break_statement", "return_statement", "throw_statement"}:
+            case_block_has_exit = True
+
+        elif child.type == "continue_statement":
+            violations.append({
+                "line": child.start_point[0] + 1,
+                "message": "Use of 'continue' is banned."
+            })
 
     if not has_default:
         violations.append({
@@ -139,7 +128,3 @@ def check_switch_statement(node, source_code: str) -> list[dict]:
 
     return violations
 
-def check_macro_misuse(node, source_code:str) -> list[dict]:
-    violations = []
-
-    return violations
