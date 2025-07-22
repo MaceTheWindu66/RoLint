@@ -106,12 +106,15 @@ class PyRules(ast.NodeVisitor):
 
         # start()/join()/terminate()/wait()/communicate() tracking
         if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
+
             tname = node.func.value.id
+
             if tname in self.thread_objs:
                 if node.func.attr == "start":
                     self.thread_objs[tname]["started"] = True
                 elif node.func.attr == "join":
                     self.thread_objs[tname]["joined"] = True
+
         if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
             pname = node.func.value.id
             if pname in self.subprocesses:
@@ -138,7 +141,7 @@ def run_python_linter(path: Path) -> list[dict]:
 
     #Run flake8 for PEP8 standards
     result = subprocess.run(
-        ["flake8", str(path), "--ignore=E501"],  # example
+        ["flake8", str(path), "--ignore=E501,E302"],  # example
         capture_output=True, text=True
     )
     for line in result.stdout.splitlines():
@@ -146,7 +149,7 @@ def run_python_linter(path: Path) -> list[dict]:
         if len(parts) >= 4:
             lnum = int(parts[1])
             msg = ":".join(parts[3:]).strip()
-            linter.violations.append({"line": lnum, "message": f"PEP8: {msg}"})
+            linter.violations.append({"line": lnum, "message": f"PEP8 Violation: {msg}"})
 
     return linter.violations
 
