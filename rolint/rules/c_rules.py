@@ -5,6 +5,7 @@
 
 def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_table: dict, is_global_var) -> list[dict]:
 
+    
     violations = []
 
     if node.type == "call_expression":

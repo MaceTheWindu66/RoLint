@@ -4,6 +4,7 @@ from rolint.parser import parser as parser_module
 from rolint.rules import c_rules
 from rolint.rules.python_rules import run_python_linter
 from rolint.rules import cpp_rules
+from rolint.rules import struct_table_builder
 import sys
 
 
@@ -88,10 +89,12 @@ def run_file_lint(file_path: Path, lang: str) -> list[dict]:
             "variables": set(),
             "functions": set()
         }
+        global_struct_table = {}
 
         if file_path.suffix in {".h"}:
             violations += c_rules.check_header_guard(source, str(file_path))
             violations += c_rules.check_object_definitions_in_header(tree, source)
+            global_struct_table = struct_table_builder.build_struct_table(tree.root_node, source)
         else:
             violations += c_rules.walk(tree.root_node, source, symbol_table, declared_table, used_table, is_global_var=True)
             violations += c_rules.check_recursion(tree.root_node, source)
@@ -100,6 +103,8 @@ def run_file_lint(file_path: Path, lang: str) -> list[dict]:
         if violations:
             for v in violations:
                 print(f"🚫 {file_path}:{v['line']}: {v['message']}")
+        
+        
 
     elif lang in {"cpp"}:
         tree, source = parser_module.parse_file(file_path, lang)
