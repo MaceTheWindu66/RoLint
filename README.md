@@ -21,7 +21,7 @@ Additionally, you can install by cloning this github onto your computer.
 
 RoLint is extremely simple to use. There are 2 "commands" of RoLint:
 
-> rolint check [OPTIONS] path/to/code.c  <-- To specify specific language or output types 
+> rolint check [OPTIONS] path/to/code.c  <-- To specify specific language or output types   
 > rolint directory/  <--- Will run with default settings (text output, file's language) on all files in path.
 
 For C/C++, RoLint is to be ran on an uncompiled C/C++ file. RoLint is not built to run off of C/C++ binaries, however their text files. RoLint should be used in conjunction with a compiler for most effective results. The rules for common compilers and this linter have overlap, but cover slightly different areas. 
