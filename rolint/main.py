@@ -6,6 +6,7 @@ from rolint.rules.python_rules import run_python_linter
 from rolint.rules import cpp_rules
 from rolint.rules import struct_table_builder
 import sys
+from rolint.rules import override
 
 
 
@@ -91,12 +92,14 @@ def run_file_lint(file_path: Path, lang: str) -> list[dict]:
         }
         global_struct_table = {}
 
+        ignored_lines, ignored_blocks = override.detect_override_lines(source)
+
         if file_path.suffix in {".h"}:
             violations += c_rules.check_header_guard(source, str(file_path))
             violations += c_rules.check_object_definitions_in_header(tree, source)
-            global_struct_table = struct_table_builder.build_struct_table(tree.root_node, source)
         else:
-            violations += c_rules.walk(tree.root_node, source, symbol_table, declared_table, used_table, is_global_var=True)
+            violations += c_rules.walk(tree.root_node, source, symbol_table, declared_table, used_table,
+                                        is_global_var=True, ignored_lines=ignored_lines, ignored_blocks=ignored_blocks)
             violations += c_rules.check_recursion(tree.root_node, source)
             violations += c_rules.check_unused(declared_table, used_table)
         

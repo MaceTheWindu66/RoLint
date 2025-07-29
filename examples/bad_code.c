@@ -20,6 +20,7 @@ void test() {
     
     char buf[100];
     gets(buf);                     // 🚨 banned: gets
+    // rolint: ignore
     strcpy(global_buf, buf);      // 🚨 banned: strcpy
     sprintf(buf, "Hello %s", buf); // 🚨 banned: sprintf
 
@@ -29,10 +30,11 @@ void test() {
 
     x = (short)b;
 
-    int temp = 42;                // 🚨 defined at global scope, used only here
+    int temp = 42;                
 
     test();
 
+    // rolint: ignore-block
     switch (x) {
     case 1:
         printf("One\n");  // No break here!

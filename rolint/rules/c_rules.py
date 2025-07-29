@@ -3,87 +3,93 @@
     unsafe practices, etc.
 """
 
-def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_table: dict, is_global_var) -> list[dict]:
+def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_table: dict, is_global_var, ignored_lines, ignored_blocks) -> list[dict]:
 
     
     violations = []
 
-    if node.type == "call_expression":
-        #Check expression call to see if function is banned
-        violations += check_banned_functions(node, source_code)
+    if (node.start_point[0] in ignored_blocks):
         
-        #Check for side effects in function call
-        violations += check_side_effects_in_func_call(node, source_code)
+        return violations  
 
-    elif node.type == "declaration":  
+    if node.start_point[0] not in ignored_lines:
 
-        if is_global_var:
-            violations += check_global(node, source_code)
+        if node.type == "call_expression":
+            #Check expression call to see if function is banned
+            violations += check_banned_functions(node, source_code)
+            
+            #Check for side effects in function call
+            violations += check_side_effects_in_func_call(node, source_code)
 
-        #Check declarations rules (multiple conversions, no initialization)  
-        violations += check_declaration(node, source_code)
+        elif node.type == "declaration":  
 
+            if is_global_var:
+                violations += check_global(node, source_code)
 
-        #Check type conversions
-        violations += check_implicit_conversion_in_declaration(node, source_code, symbol_table)
-
-        # Track declared vars
-        for child in node.named_children:
-            if child.type == "init_declarator":
-                ident = child.child_by_field_name("declarator")
-                if ident and ident.type == "identifier":
-                    name = source_code[ident.start_byte:ident.end_byte].decode("utf-8").strip()
-                    declared_table["variables"][name] = node.start_point[0] + 1
-
-    elif node.type == "assignment_expression":
-        violations += check_implicit_conversion_in_assignment(node, source_code, symbol_table)
-
-    elif node.type == "cast_expression":
-        violations += check_casting(node, source_code, symbol_table)
-        violations += check_narrowing_casts(node, source_code, symbol_table)
-    
-    elif node.type == "continue_statement":
-        violations.append({
-            "line": node.start_point[0] + 1,
-            "message": "Use of 'continue' is banned."
-        })
-    elif node.type == "goto_statement":
-        #Specifically banning goto statements
-        violations.append({
-            "line": node.start_point[0] + 1,
-            "message": f"Usage of 'goto' is banned. Please use structured control flow logic."
-        })
-    
-    elif node.type == "switch_statement":
-        violations += check_switch_statement(node, source_code)
-    elif node.type == "preproc_function_def":
-        violations += check_function_like_macros(node, source_code)
-
-    ##Checks for unused funcs or vars
-    elif node.type == "function_definition":
-        is_global_var = False
-        func_node = node.child_by_field_name("declarator")
-        if func_node:
-            ident_node = func_node.child_by_field_name("declarator")
-            if ident_node and ident_node.type == "identifier":
-                name = source_code[ident_node.start_byte:ident_node.end_byte].decode("utf-8").strip()
-                declared_table["functions"][name] = node.start_point[0] + 1
-
-    elif node.type == "identifier":
-
-        name = source_code[node.start_byte:node.end_byte].decode("utf-8").strip()
-
-        # Only mark as used if not part of a declaration
-        parent = node.parent
-        if parent and parent.type != "init_declarator" and parent.type != "declaration":
-            if name in declared_table["variables"]:
-                used_table["variables"].add(name)
-            if name in declared_table["functions"]:
-                used_table["functions"].add(name) 
+            #Check declarations rules (multiple conversions, no initialization)  
+            violations += check_declaration(node, source_code)
 
 
-    for child in node.children:
-        violations += walk(child, source_code, symbol_table, declared_table, used_table, is_global_var)
+            #Check type conversions
+            violations += check_implicit_conversion_in_declaration(node, source_code, symbol_table)
+
+            # Track declared vars
+            for child in node.named_children:
+                if child.type == "init_declarator":
+                    ident = child.child_by_field_name("declarator")
+                    if ident and ident.type == "identifier":
+                        name = source_code[ident.start_byte:ident.end_byte].decode("utf-8").strip()
+                        declared_table["variables"][name] = node.start_point[0] + 1
+
+        elif node.type == "assignment_expression":
+            violations += check_implicit_conversion_in_assignment(node, source_code, symbol_table)
+
+        elif node.type == "cast_expression":
+            violations += check_casting(node, source_code, symbol_table)
+            violations += check_narrowing_casts(node, source_code, symbol_table)
+        
+        elif node.type == "continue_statement":
+            violations.append({
+                "line": node.start_point[0] + 1,
+                "message": "Use of 'continue' is banned."
+            })
+        elif node.type == "goto_statement":
+            #Specifically banning goto statements
+            violations.append({
+                "line": node.start_point[0] + 1,
+                "message": f"Usage of 'goto' is banned. Please use structured control flow logic."
+            })
+        
+        elif node.type == "switch_statement":
+            violations += check_switch_statement(node, source_code)
+        elif node.type == "preproc_function_def":
+            violations += check_function_like_macros(node, source_code)
+
+        ##Checks for unused funcs or vars
+        elif node.type == "function_definition":
+            is_global_var = False
+            func_node = node.child_by_field_name("declarator")
+            if func_node:
+                ident_node = func_node.child_by_field_name("declarator")
+                if ident_node and ident_node.type == "identifier":
+                    name = source_code[ident_node.start_byte:ident_node.end_byte].decode("utf-8").strip()
+                    declared_table["functions"][name] = node.start_point[0] + 1
+
+        elif node.type == "identifier":
+
+            name = source_code[node.start_byte:node.end_byte].decode("utf-8").strip()
+
+            # Only mark as used if not part of a declaration
+            parent = node.parent
+            if parent and parent.type != "init_declarator" and parent.type != "declaration":
+                if name in declared_table["variables"]:
+                    used_table["variables"].add(name)
+                if name in declared_table["functions"]:
+                    used_table["functions"].add(name) 
+
+    if node.start_point[0] not in ignored_blocks:
+        for child in node.children:
+            violations += walk(child, source_code, symbol_table, declared_table, used_table, is_global_var, ignored_lines, ignored_blocks)
         
 
     return violations
