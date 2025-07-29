@@ -122,15 +122,21 @@ def run_file_lint(file_path: Path, lang: str) -> list[dict]:
             "functions": set()
         }
 
+        ignored_lines, ignored_blocks = override.detect_override_lines(source)
         
-        violations += cpp_rules.walk(tree.root_node, source, symbol_table, declared_table, used_table, is_global_var=True)
+        violations += cpp_rules.walk(tree.root_node, source, symbol_table, declared_table, used_table, is_global_var=True,
+                                     ignored_lines=ignored_lines, ignored_blocks=ignored_blocks)
 
         if violations:
             for v in violations:
                 print(f"🚫 {file_path}:{v['line']}: {v['message']}")
 
     elif lang in {"python"}:
-        violations += run_python_linter(file_path)
+        source = file_path.read_text(encoding="utf-8")
+        ignored_lines, ignored_blocks = override.detect_py_overrides(source)
+        
+
+        violations += run_python_linter(file_path, ignored_lines, ignored_blocks)
         
         if violations:
             for v in violations:

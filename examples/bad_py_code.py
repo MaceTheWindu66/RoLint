@@ -17,6 +17,7 @@ def thread_example():
     t.start()
 
 # Function missing annotations
+# rolint: ignore
 def do_work(x, y):
     return x + y
 

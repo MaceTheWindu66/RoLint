@@ -26,6 +26,7 @@ public:
     }
 
     void unsafeFunction(int* ptr) {
+        //rolint: ignore
         *ptr = rand(); // ❌ unsafe random, possible null deref
     }
 

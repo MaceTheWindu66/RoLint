@@ -1,49 +1,56 @@
-def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_table: dict, is_global_var) -> list[dict]:
+def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_table: dict, is_global_var, ignored_lines, ignored_blocks) -> list[dict]:
 
     violations = []
-    # Check for banned functions including new and delete
-    if node.type == "call_expression":
-        violations += check_banned_funcs(node, source_code)
 
-
-    # Ban delete and new
-    elif node.type == "new_expression":
-        violations.append({
-            "line": node.start_point[0] + 1,
-            "function": "new",
-            "message": "Usage of 'new' is banned. Use static or stack allocation instead."
-        })
-
-
-    elif node.type == "delete_expression":
-        violations.append({
-            "line": node.start_point[0] + 1,
-            "function": "delete",
-            "message": "Usage of 'delete' is banned. Use RAII or static allocation instead."
-        })
-
-    #Check for misuse of switch statements
-    elif node.type == "switch_statement":
-        violations += check_switch_statement(node, source_code)
-
-    #Ban goto
-    elif node.type == "goto":
-        violations.append({
-            "line": node.start_point[0] + 1,
-            "message": "Usage of 'goto' and any uncontrolled jumps are banned."
-        })
-    
-    #Ban function-like macros
-    elif node.type == "preproc_function_def":
-        violations.append({
-            "line": node.start_point[0] + 1,
-            "message": "Definition of function-like macros are banned. Consider using 'inline'."
-        })
-   
-
-    for child in node.children:
-        violations += walk(child, source_code, symbol_table, declared_table, used_table, is_global_var)
+    if node.start_point[0] in ignored_blocks:
         
+        return violations  
+
+    if node.start_point[0] not in ignored_lines:
+        # Check for banned functions including new and delete
+        if node.type == "call_expression":
+            violations += check_banned_funcs(node, source_code)
+
+
+        # Ban delete and new
+        elif node.type == "new_expression":
+            violations.append({
+                "line": node.start_point[0] + 1,
+                "function": "new",
+                "message": "Usage of 'new' is banned. Use static or stack allocation instead."
+            })
+
+
+        elif node.type == "delete_expression":
+            violations.append({
+                "line": node.start_point[0] + 1,
+                "function": "delete",
+                "message": "Usage of 'delete' is banned. Use RAII or static allocation instead."
+            })
+
+        #Check for misuse of switch statements
+        elif node.type == "switch_statement":
+            violations += check_switch_statement(node, source_code)
+
+        #Ban goto
+        elif node.type == "goto":
+            violations.append({
+                "line": node.start_point[0] + 1,
+                "message": "Usage of 'goto' and any uncontrolled jumps are banned."
+            })
+        
+        #Ban function-like macros
+        elif node.type == "preproc_function_def":
+            violations.append({
+                "line": node.start_point[0] + 1,
+                "message": "Definition of function-like macros are banned. Consider using 'inline'."
+            })
+    
+
+        for child in node.children:
+            violations += walk(child, source_code, symbol_table, declared_table, used_table, is_global_var,
+                               ignored_lines, ignored_blocks)
+            
 
     return violations
 

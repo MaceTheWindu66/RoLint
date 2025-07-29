@@ -108,7 +108,7 @@ def check_banned_functions(node, source_code: str) -> list[dict]:
     """
 
     banned_functions = {
-        "gets", "strcpy", "strncpy", "printf", "sprintf", "vsprintf",
+        "gets", "strcpy", "printf", "sprintf", "vsprintf",
         "strcat", "strncat", "scanf", "sscanf", "fscanf",
         "strtok", "atoi", "atol", "atof", "atoll", "setjmp", "longjmp",
         "malloc", "calloc", "free", "realloc"

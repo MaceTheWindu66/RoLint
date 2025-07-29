@@ -5,6 +5,16 @@ from collections import defaultdict
 
 # Got to make this part of the linter a lot cleaner due to the AST support in python
 
+## Python rules implemented:
+#      - Static type checking (requiring type hints on variables)
+#      - Ban unsafe python functions
+#      - Enforce safe threading practices (i.e Graceful Termination)
+#      - Enforce PEP8 standards
+#      - Enforce runtime assertions (with prebuilt template function rather than assert)
+
+
+
+
 class PyRules(ast.NodeVisitor):
     def __init__(self, source: str, path: Path):
         self.src = source
@@ -57,7 +67,7 @@ class PyRules(ast.NodeVisitor):
         self.generic_visit(node)
         self.current_function = None
     
-    #Chillen here because AnnAssign means there's a type hint
+    # Chillen here because AnnAssign means there's a type hint
     def visit_AnnAssign(self, node: ast.AnnAssign):
         self.generic_visit(node)
     
@@ -130,7 +140,7 @@ class PyRules(ast.NodeVisitor):
 
 
 
-def run_python_linter(path: Path) -> list[dict]:
+def run_python_linter(path: Path, ignored_lines, ignored_blocks) -> list[dict]:
     text = path.read_text(encoding="utf-8")
     tree = ast.parse(text, filename=str(path))
 
@@ -151,15 +161,45 @@ def run_python_linter(path: Path) -> list[dict]:
             msg = ":".join(parts[3:]).strip()
             linter.violations.append({"line": lnum, "message": f"PEP8 Violation: {msg}"})
 
+    ignored_line_ranges = get_block_ranges(tree, ignored_blocks)
+
+    def is_ignored(line):
+        # Helper function to determine if a line is ignored or not
+        if line in ignored_lines:
+            return True
+        for start, end in ignored_line_ranges:
+            if start <= line <= end:
+                return True
+        return False
+
+    # Filter out ignored violations
+    linter.violations = [
+        v for v in linter.violations if not is_ignored(v["line"])
+    ]
+
     return linter.violations
 
 
 
-## Python rules to be implemented:
-#      - Static type checking (requiring type hints on variables)
-#      - Ban unsafe python functions
-#      - Enforce safe threading practices (i.e Graceful Termination)
-#      - Enforce PEP8 standards
-#      - Enforce runtime assertions (with prebuilt template function rather than assert)
-#      -
+def get_block_ranges(tree, ignored_lines):
+    """
+    Helper to determine a coding block's size to ignore (for rolint: ignore-block command)
+    """
 
+    ignored_ranges = []
+
+    for node in ast.walk(tree):
+        # Skip if the node doesn't have lineno (like `Load`, `Store`, etc.)
+        if hasattr(node, "lineno") and node.lineno in ignored_lines:
+            # Estimate block range using lineno and end_lineno (Python 3.8+)
+            start = node.lineno
+            end = getattr(node, "end_lineno", None)
+
+            if end is None:
+                # fallback for Python <3.8 or missing info
+                # this is very rough, assumes block is ~1 line
+                end = node.lineno + 1
+
+            ignored_ranges.append((start, end))
+    
+    return ignored_ranges
