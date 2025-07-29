@@ -21,14 +21,14 @@ Additionally, you can install by cloning this github onto your computer.
 
 RoLint is extremely simple to use. There are 2 "commands" of RoLint:
 
-> rolint check [OPTIONS] path/to/code.c  <-- To be used on specific files  
-> rolint directory/  <--- To run on a project directory as a whole.
+> rolint check [OPTIONS] path/to/code.c  <-- To specify specific language or output types 
+> rolint directory/  <--- Will run with default settings (text output, file's language) on all files in path.
 
 For C/C++, RoLint is to be ran on an uncompiled C/C++ file. RoLint is not built to run off of C/C++ binaries, however their text files. RoLint should be used in conjunction with a compiler for most effective results. The rules for common compilers and this linter have overlap, but cover slightly different areas. 
 
-### Options for Specific File Linting
+### Options for Check Command
 
-When linting a specific file, options must be defined. These options define the language and output. 
+When linting a specific file using the check command, options must be defined. These options define the language and output. 
 
 > #### Options:
 > 
@@ -38,6 +38,21 @@ When linting a specific file, options must be defined. These options define the 
 > #### Examples:
 > >
 > > rolint check --lang c --output text main.c  
+
+## Ignore/Override Features
+
+RoLint comes with an override feature built in for all 3 languages.  
+> " rolint: ignore" <-- Ignores the next line  
+> " rolint: ignore-block" <-- Ignores a code block
+
+For example, RoLint will ignore a for loop, and all of the code inside of the for loop, if rolint: ignore-block is commented immediately before the loop.  
+
+### C/C++:  
+> "// rolint: ignore"  
+> "// rolint: ignore-block"  
+### Python:  
+> "## rolint: ignore"  
+> "## rolint: ignore-block"  
 
 ## Overview of Rules
 
