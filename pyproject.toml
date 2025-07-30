@@ -1,6 +1,6 @@
 [project]
 name = "rolint"
-version = "0.1.1"
+version = "0.1.2"
 description = "RoLint - A multi-language linter for safe robotic software development (C, C++, Python)"
 authors = [{ name = "Maddux Berry", email = "madduxberry31@gmail.com" }]
 readme = "README.md"
@@ -41,6 +41,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 include-package-data = true
+
+[tool.setuptools.package-data]
+"rolint.vendor.tree_sitter_languages" = ["*.pyd", "*.dll"]
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -1,6 +1,7 @@
 include README.md
 include LICENSE
 
+recursive-include rolint/vendor/tree_sitter_languages *.pyd *.dll *.py
 
 global-exclude __pycache__ *.py[cod] *.so *.log
 prune venv
