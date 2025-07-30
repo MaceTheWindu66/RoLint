@@ -4,7 +4,6 @@ from rolint.parser import parser as parser_module
 from rolint.rules import c_rules
 from rolint.rules.python_rules import run_python_linter
 from rolint.rules import cpp_rules
-from rolint.rules import struct_table_builder
 import sys
 from rolint.rules import override
 

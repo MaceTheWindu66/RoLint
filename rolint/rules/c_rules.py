@@ -57,7 +57,7 @@ def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_t
             #Specifically banning goto statements
             violations.append({
                 "line": node.start_point[0] + 1,
-                "message": f"Usage of 'goto' is banned. Please use structured control flow logic."
+                "message": "Usage of 'goto' is banned. Please use structured control flow logic."
             })
         
         elif node.type == "switch_statement":

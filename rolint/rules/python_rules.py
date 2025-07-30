@@ -1,7 +1,6 @@
 import ast
 import subprocess
 from pathlib import Path
-from collections import defaultdict
 
 # Got to make this part of the linter a lot cleaner due to the AST support in python
 
@@ -63,7 +62,7 @@ class PyRules(ast.NodeVisitor):
                 self.add(arg, f"Paramater '{arg.arg}' missing type annotation. Please specify type.")
         if node.returns is None:
             # Check to make sure return type is declared
-            self.add(node, f"Function is missing return type annotation.")
+            self.add(node, "Function is missing return type annotation.")
         self.generic_visit(node)
         self.current_function = None
     
