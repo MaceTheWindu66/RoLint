@@ -1,0 +1,6 @@
+include README.md
+include LICENSE
+
+
+global-exclude __pycache__ *.py[cod] *.so *.log
+prune venv
