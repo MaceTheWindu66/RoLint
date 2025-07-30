@@ -1,7 +1,7 @@
 ##For parsing C and C++ files
 
 from pathlib import Path
-from tree_sitter_languages import get_parser
+from rolint.vendor.tree_sitter_languages import get_parser
 
 # Supported languages
 SUPPORTED_LANGUAGES = {"c", "cpp"}

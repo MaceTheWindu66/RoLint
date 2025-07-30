@@ -18,7 +18,6 @@ keywords = ["linter", "robotics", "static-analysis", "c", "cpp", "python"]
 
 dependencies = [
     "tree_sitter>=0.20.1",
-    "tree_sitter_languages>=1.10.2",
     "typer[all]>=0.9.0",
     "pyyaml>=6.0",
     "rich>=13.0",
