@@ -10,12 +10,12 @@ This Linter is designed with MIRSA-C, MIRSA-C++, PEP8, and The Power Of 10 Stand
 
 ## Installation of RoLint
 
-(NOT CURRENTLY ACCURATE. WILL BE IN FUTURE) RoLint is registtered on PyPi, and you can install it with  
+RoLint is registtered on PyPi, and you can install it with  
 
  > **pip install rolint**
 
 This will install the RoLint linter.
-Additionally, you can install by cloning this github onto your computer.
+Additionally, you can install by cloning the github for the project at https://github.com/MaceTheWindu66/RoLint
 
 ## How to Use RoLint
 
@@ -82,6 +82,20 @@ based on MIRSA C/C++, The Power of 10, and PEP8 Standards.
 14. No goto calls or unchecked jumps.
 15. Header files must be guarded with an #ifndef statement.
 16. Object definitions in header files are not permitted.
+
+### C++ Rules
+1. Unsafe standard library functions are banned, similar to C. Here is a list of the banned functions for C++:  
+> malloc, calloc, realloc, free,
+        printf, sprintf, scanf, gets, fgets,
+        rand, srand, time, clock, gettimeofday,
+        system, fork, exec, exit,
+        va_start, va_arg, va_end,
+        cin, cout, cerr, delete, new
+2. Switch statements cannot have implicit fallthroughs (use break or [[fallthrough]])
+3. Switch statements must have default statements
+4. No continue statements
+5. No uncontrolled jump statements, including goto
+6. No function like macros
 
 ### Python Rules  
 1. Code must follow PEP8 standards (flake8 used for PEP8 compliance checking).
