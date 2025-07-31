@@ -1,13 +1,24 @@
 ##For parsing C and C++ files
 
 from pathlib import Path
-from rolint.vendor.tree_sitter_languages import get_parser
+import tree_sitter_c as tsc
+import tree_sitter_cpp as tscpp
+from tree_sitter import Language, Parser
 
 # Supported languages
 SUPPORTED_LANGUAGES = {"c", "cpp"}
 
+# Language mappings
+LANGUAGE_MAP = {
+    "c": Language(tsc.language()),
+    "cpp": Language(tscpp.language())
+}
+
 # Cache for performance
-parsers = {lang: get_parser(lang) for lang in SUPPORTED_LANGUAGES}
+parsers = {}
+for lang in SUPPORTED_LANGUAGES:
+    parser = Parser(LANGUAGE_MAP[lang])
+    parsers[lang] = parser
 
 def parse_file(file_path: Path, lang: str):
     """
