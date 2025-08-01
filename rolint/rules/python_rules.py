@@ -141,8 +141,13 @@ class PyRules(ast.NodeVisitor):
 
 def run_python_linter(path: Path, ignored_lines, ignored_blocks) -> list[dict]:
     text = path.read_text(encoding="utf-8")
-    tree = ast.parse(text, filename=str(path))
-
+    try:
+        tree = ast.parse(text, filename=str(path))
+    except SyntaxError as e:
+        return [{
+            "line": e.lineno,
+            "message": f"Syntax error: {e.msg} at line {e.lineno}. Please resolve before continuing."
+        }]
 
     linter = PyRules(text, path)
     linter.visit(tree) # Visit all nodes (visit function defined in ast.NodeVisitor class)
@@ -150,7 +155,7 @@ def run_python_linter(path: Path, ignored_lines, ignored_blocks) -> list[dict]:
 
     #Run flake8 for PEP8 standards
     result = subprocess.run(
-        ["flake8", str(path), "--ignore=E501,E302"],  # example
+        ["flake8", str(path), "--ignore=E501,E302,E231,E262,E261,W291,W292"], 
         capture_output=True, text=True
     )
     for line in result.stdout.splitlines():
@@ -158,7 +163,8 @@ def run_python_linter(path: Path, ignored_lines, ignored_blocks) -> list[dict]:
         if len(parts) >= 4:
             lnum = int(parts[1])
             msg = ":".join(parts[3:]).strip()
-            linter.violations.append({"line": lnum, "message": f"PEP8 Violation: {msg}"})
+            linter.violations.append({"line": lnum, 
+                                      "message": f"PEP8 Violation: {msg}"})
 
     ignored_line_ranges = get_block_ranges(tree, ignored_blocks)
 
