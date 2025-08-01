@@ -16,8 +16,8 @@ def check(
     Run safety checks on code.
 
     Examples: \n
-      For specific files: rolint check --lang c examples/file.c \n
-      For directories: rolint examples/              \n
+      For checking with specific options: rolint check --lang c examples/file.c \n
+      For default linting: rolint examples/              \n
     """
     run_linter(path, lang=lang, output_format=output)
 
