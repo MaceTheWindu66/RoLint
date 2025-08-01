@@ -6,7 +6,7 @@ from rolint.rules.python_rules import run_python_linter
 from rolint.rules import cpp_rules
 import sys
 from rolint.rules import override
-
+from rolint.reporter.json import report_json
 
 
 EXTENSION_MAP = {
@@ -32,7 +32,7 @@ def collect_files(base_path: Path) -> dict[str, list[Path]]:
                 lang_files[lang].append(file_path)
     return lang_files
 
-def run_linter(path: Path, lang: str = None, output_format: str = "text"):
+def run_linter(path: Path, lang: str = None, output_format: str = "text", output_path: Path = None):
 
     violations = []
 
@@ -50,6 +50,9 @@ def run_linter(path: Path, lang: str = None, output_format: str = "text"):
         
         #Exit with status 1 code if there are violations to prevent commit
         if violations:
+            if output_format == "json":
+                report_json(violations, output_path)
+                print(f"📄 Output at {output_path}")
             print("Blocking Commit.")
             print(" - John 8:11")
             sys.exit(1)
@@ -65,7 +68,11 @@ def run_linter(path: Path, lang: str = None, output_format: str = "text"):
         print(f"🌐 Language: {inferred_lang}")
         print(f"📤 Output format: {output_format}")
         run_file_lint(path, inferred_lang)
+
         if violations:
+            if output_format == "json":
+                report_json(violations, output_path)
+                print(f"📄 Output at {output_path}")
             print("Blocking commit.")
             print(" - John 8:11")
             sys.exit(1)
@@ -104,6 +111,7 @@ def run_file_lint(file_path: Path, lang: str) -> list[dict]:
         
         if violations:
             for v in violations:
+                v["file"] = str(file_path)
                 print(f"🚫 {file_path}:{v['line']}: {v['message']}")
         
         
@@ -128,6 +136,7 @@ def run_file_lint(file_path: Path, lang: str) -> list[dict]:
 
         if violations:
             for v in violations:
+                v["file"] = str(file_path)
                 print(f"🚫 {file_path}:{v['line']}: {v['message']}")
 
     elif lang in {"python"}:
@@ -139,6 +148,7 @@ def run_file_lint(file_path: Path, lang: str) -> list[dict]:
         
         if violations:
             for v in violations:
+                v["file"] = str(file_path)
                 print(f"🚫 {file_path}:{v['line']}: {v['message']}")
     else:
         print(f"⚠️ Unknown language: {lang}")
