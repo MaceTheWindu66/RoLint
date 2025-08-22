@@ -1,3 +1,6 @@
+
+
+
 def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_table: dict, is_global_var, ignored_lines, ignored_blocks) -> list[dict]:
 
     violations = []
