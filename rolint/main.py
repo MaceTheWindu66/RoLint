@@ -7,6 +7,7 @@ from rolint.rules import cpp_rules
 import sys
 from rolint.rules import override
 from rolint.reporter.json import report_json
+from rolint.rules.struct_table_builder import build_struct_table
 
 
 EXTENSION_MAP = {
@@ -74,8 +75,7 @@ def run_linter(path: Path, lang: str = None, output_format: str = "text", output
         run_file_lint(path, inferred_lang)
 
         if violations:
-            if output_format == "json":
-                
+            if output_format == "json":   
                 report_json(violations, ignored_lines, ignored_blocks, output_path)
                 print(f"📄 Output at {output_path}")
             print("Blocking commit.")
@@ -105,7 +105,7 @@ def run_file_lint(file_path: Path, lang: str):
             "variables": set(),
             "functions": set()
         }
-        global_struct_table = {}
+        global_struct_table = build_struct_table(tree.root_node, source)
 
         ignored_lines, ignored_blocks = override.detect_override_lines(source)
 
@@ -113,7 +113,7 @@ def run_file_lint(file_path: Path, lang: str):
             violations += c_rules.check_header_guard(source, str(file_path))
             violations += c_rules.check_object_definitions_in_header(tree, source)
         else:
-            violations += c_rules.walk(tree.root_node, source, symbol_table, declared_table, used_table,
+            violations += c_rules.walk(tree.root_node, source, symbol_table, declared_table, used_table, global_struct_table,
                                         is_global_var=True, ignored_lines=ignored_lines, ignored_blocks=ignored_blocks)
             violations += c_rules.check_recursion(tree.root_node, source)
             violations += c_rules.check_unused(declared_table, used_table)

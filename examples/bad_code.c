@@ -14,8 +14,10 @@ void test() {
     int e = 3.14;
     short s = 1;
 
-
+    struct MSG;
+    
     b = s;
+
 
     
     char buf[100];

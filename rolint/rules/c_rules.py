@@ -8,7 +8,7 @@ from .c_rule_functions import type_safety
     unsafe practices, etc.
 """
 
-def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_table: dict, is_global_var, ignored_lines, ignored_blocks) -> list[dict]:
+def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_table: dict, struct_table, is_global_var, ignored_lines, ignored_blocks) -> list[dict]:
 
     
     violations = []
@@ -36,7 +36,7 @@ def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_t
 
 
             #Check type conversions
-            violations += type_safety.check_implicit_conversion_in_declaration(node, source_code, symbol_table)
+            violations += type_safety.check_implicit_conversion_in_declaration(node, source_code, symbol_table, struct_table)
 
             # Track declared vars
             for child in node.named_children:
@@ -47,11 +47,11 @@ def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_t
                         declared_table["variables"][name] = node.start_point[0] + 1
 
         elif node.type == "assignment_expression":
-            violations += type_safety.check_implicit_conversion_in_assignment(node, source_code, symbol_table)
+            violations += type_safety.check_implicit_conversion_in_assignment(node, source_code, symbol_table, struct_table)
 
         elif node.type == "cast_expression":
-            violations += type_safety.check_casting(node, source_code, symbol_table)
-            violations += type_safety.check_narrowing_casts(node, source_code, symbol_table)
+            violations += type_safety.check_casting(node, source_code, symbol_table, struct_table)
+            violations += type_safety.check_narrowing_casts(node, source_code, symbol_table, struct_table)
         
         elif node.type == "continue_statement":
             violations.append({
@@ -94,7 +94,7 @@ def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_t
 
     if node.start_point[0] not in ignored_blocks:
         for child in node.children:
-            violations += walk(child, source_code, symbol_table, declared_table, used_table, is_global_var, ignored_lines, ignored_blocks)
+            violations += walk(child, source_code, symbol_table, declared_table, used_table, struct_table, is_global_var, ignored_lines, ignored_blocks)
         
 
     return violations
