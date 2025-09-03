@@ -1,0 +1,248 @@
+{
+  "examples\\bad_code.c": [
+    {
+      "line": 4,
+      "message": "VIOLATION: Global variable 'global_buf' must be marked 'const', 'extern', 'static', or 'volatile'."
+    },
+    {
+      "line": 6,
+      "message": "VIOLATION: Function-like macro 'SQUARE' detected. Usage of function-like macros is banned. Use inline functions instead."
+    },
+    {
+      "line": 11,
+      "message": "VIOLATION: Variable 'a' declared without initialization."
+    },
+    {
+      "line": 13,
+      "message": "VIOLATION: Multiple variables declared in one statement: c, d. Please separate onto separate lines."
+    },
+    {
+      "line": 14,
+      "message": "VIOLATION: Implicit conversion from float literal to 'int' in declaration of 'e' may lose precision."
+    },
+    {
+      "line": 18,
+      "message": "VIOLATION: Implicit narrowing conversion from 'short' to 'int' in assignment to 'b' may lose precision."
+    },
+    {
+      "line": 22,
+      "message": "VIOLATION: Usage of function 'gets' is banned. Please use safer alternative."
+    },
+    {
+      "line": 24,
+      "message": "VIOLATION: Usage of function 'strcpy' is banned. Please use safer alternative."
+    },
+    {
+      "line": 25,
+      "message": "VIOLATION: Usage of function 'sprintf' is banned. Please use safer alternative."
+    },
+    {
+      "line": 27,
+      "message": "VIOLATION: Type mismatch or implicit conversion from float literal to 'int' in assignment to 'b' may lose precision."
+    },
+    {
+      "line": 29,
+      "message": "VIOLATION: Usage of function 'printf' is banned. Please use safer alternative."
+    },
+    {
+      "line": 29,
+      "message": "VIOLATION: Side effect or function call in arguments for function call 'printf'."
+    },
+    {
+      "line": 31,
+      "message": "VIOLATION: Narrowing cast from 'int' to 'short' may lose precision or range."
+    },
+    {
+      "line": 38,
+      "message": "VIOLATION: Switch statement missing 'default' case."
+    },
+    {
+      "line": 40,
+      "message": "VIOLATION: Usage of function 'printf' is banned. Please use safer alternative."
+    },
+    {
+      "line": 42,
+      "message": "VIOLATION: Usage of function 'printf' is banned. Please use safer alternative."
+    },
+    {
+      "line": 45,
+      "message": "VIOLATION: Usage of function 'printf' is banned. Please use safer alternative."
+    },
+    {
+      "line": 48,
+      "message": "VIOLATION: Usage of function 'printf' is banned. Please use safer alternative."
+    },
+    {
+      "line": 9,
+      "message": "VIOLATION: Recursive function 'test' is banned. Use an iterative alternative."
+    },
+    {
+      "line": 13,
+      "message": "VIOLATION: Variable 'd' declared but never used."
+    },
+    {
+      "line": 14,
+      "message": "VIOLATION: Variable 'e' declared but never used."
+    },
+    {
+      "line": 13,
+      "message": "VIOLATION: Variable 'c' declared but never used."
+    },
+    {
+      "line": 23,
+      "message": "FLAG: Ignored or Overridden Line at Line 23"
+    },
+    {
+      "line": 37,
+      "message": "FLAG: Ignored or Overridden Code Block at Line 37"
+    }
+  ],
+  "examples\\bad_code_two.c": [
+    {
+      "line": 9,
+      "message": "VIOLATION: Variable 'a' declared without initialization."
+    },
+    {
+      "line": 11,
+      "message": "VIOLATION: Multiple variables declared in one statement: c, d. Please separate onto separate lines."
+    },
+    {
+      "line": 15,
+      "message": "VIOLATION: Usage of function 'gets' is banned. Please use safer alternative."
+    },
+    {
+      "line": 16,
+      "message": "VIOLATION: Usage of function 'strcpy' is banned. Please use safer alternative."
+    },
+    {
+      "line": 17,
+      "message": "VIOLATION: Usage of function 'sprintf' is banned. Please use safer alternative."
+    },
+    {
+      "line": 20,
+      "message": "VIOLATION: Usage of function 'printf' is banned. Please use safer alternative."
+    },
+    {
+      "line": 26,
+      "message": "VIOLATION: Switch statement missing 'default' case."
+    },
+    {
+      "line": 30,
+      "message": "VIOLATION: Use of 'continue' is banned."
+    },
+    {
+      "line": 34,
+      "message": "VIOLATION: Switch statement missing 'default' case."
+    },
+    {
+      "line": 41,
+      "message": "VIOLATION: Usage of 'goto' is banned. Please use structured control flow logic."
+    },
+    {
+      "line": 10,
+      "message": "VIOLATION: Variable 'b' declared but never used."
+    },
+    {
+      "line": 11,
+      "message": "VIOLATION: Variable 'd' declared but never used."
+    },
+    {
+      "line": 22,
+      "message": "VIOLATION: Variable 'temp' declared but never used."
+    },
+    {
+      "line": 11,
+      "message": "VIOLATION: Variable 'c' declared but never used."
+    }
+  ],
+  "examples\\bad_header.h": [
+    {
+      "line": 1,
+      "message": "VIOLATION: Header file 'examples\\bad_header.h' is missing proper include guards (#ifndef / #define / #endif)."
+    },
+    {
+      "line": 5,
+      "message": "VIOLATION: Object 'global_flag' defined in header file. Object definitions are banned in headers."
+    },
+    {
+      "line": 7,
+      "message": "VIOLATION: Object 'counter' defined in header file. Object definitions are banned in headers."
+    }
+  ],
+  "examples\\bad_cpp_code.cpp": [
+    {
+      "line": 7,
+      "message": "VIOLATION: Definition of function-like macros are banned. Consider using 'inline'."
+    },
+    {
+      "line": 18,
+      "message": "VIOLATION: Usage of 'delete' is banned. Use RAII or static allocation instead."
+    },
+    {
+      "line": 30,
+      "message": "VIOLATION: Usage of function 'rand' is banned. Please use safer alternative."
+    },
+    {
+      "line": 39,
+      "message": "VIOLATION: Usage of 'goto' and any uncontrolled jumps are banned."
+    },
+    {
+      "line": 49,
+      "message": "VIOLATION: Switch statement missing 'default' case."
+    },
+    {
+      "line": 62,
+      "message": "VIOLATION: Usage of 'new' is banned. Use static or stack allocation instead."
+    },
+    {
+      "line": 29,
+      "message": "FLAG: Ignored or Overridden Line at Line 29"
+    }
+  ],
+  "examples\\bad_py_code.py": [
+    {
+      "line": 6,
+      "message": "VIOLATION: Variable 'my_data' needs a static type hint."
+    },
+    {
+      "line": 9,
+      "message": "VIOLATION: Usage of banned function 'eval'."
+    },
+    {
+      "line": 15,
+      "message": "VIOLATION: Function is missing return type annotation."
+    },
+    {
+      "line": 21,
+      "message": "VIOLATION: Paramater 'x' missing type annotation. Please specify type."
+    },
+    {
+      "line": 21,
+      "message": "VIOLATION: Paramater 'y' missing type annotation. Please specify type."
+    },
+    {
+      "line": 21,
+      "message": "VIOLATION: Function is missing return type annotation."
+    },
+    {
+      "line": 28,
+      "message": "VIOLATION: Function is missing return type annotation."
+    },
+    {
+      "line": 32,
+      "message": "VIOLATION: Function is missing return type annotation."
+    },
+    {
+      "line": 25,
+      "message": "VIOLATION: PEP8 Violation: E305 expected 2 blank lines after class or function definition, found 1"
+    },
+    {
+      "line": 33,
+      "message": "VIOLATION: PEP8 Violation: F841 local variable 'proc' is assigned to but never used"
+    },
+    {
+      "line": 21,
+      "message": "FLAG: Ignored or Overridden Line at Line 21"
+    }
+  ]
+}
