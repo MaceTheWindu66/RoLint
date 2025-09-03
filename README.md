@@ -8,6 +8,20 @@
 RoLint is designed to be a robust and strict linter for robotics / embedded systems. It was originally developed for the Humanoid Robot Project at Worcester Polytechnic Institute.
 This Linter is designed with MISRA-C, MISRA-C++, PEP8, and The Power Of 10 Standards in mind. Below is how to install and use RoLint, as well as an overview of the rules for the linter.
 
+## UPDATE 0.1.6:  
+
+### Changes to RoLint for the 0.1.6 update:  
+> Bug Fixes:  
+> > Structs no longer have false positive issue with implicit casting
+
+> Features:  
+> > Flags: Ignores / Overrides are now flagged and appear in stdout.  
+> > JSON: Updated JSON output to support flags  
+> > Stdout: Cleaned up STDOUT, made it easy to discern between flags and violations.  
+
+### Roadmap / Future Features:  
+> Using Rich formatting for clean output to console
+
 ## Installation of RoLint
 
 RoLint is registtered on PyPi, and you can install it with  
@@ -20,9 +34,9 @@ Additionally, you can install by cloning the github for the project at https://g
 ## How to Use RoLint
 
 
-> rolint check [OPTIONS] [PATH] <-- Runs the linter on file[s] in specified path. 
-> rolint set-config [OPTIONS] <-- Changes configuration as specified in options.
-> rolint show-config <-- Shows current configuration.
+> rolint check [OPTIONS] [PATH] <-- Runs the linter on file[s] in specified path.  
+> rolint set-config [OPTIONS] <-- Changes configuration as specified in options.  
+> rolint show-config <-- Shows current configuration.  
 
 For C/C++, RoLint is to be ran on an uncompiled C/C++ file. RoLint is not built to run off of C/C++ binaries, however their text files. RoLint should be used in conjunction with a compiler for most effective results. The rules for common compilers and this linter have overlap, but cover slightly different areas. 
 
@@ -32,9 +46,9 @@ When linting a specific file using the check command, options must be defined. T
 
 > #### Options:
 > 
-> > --lang c | cpp | python  <-- Specifies language
-> > --output | json <-- Changes output format  
-> > --output-path -p | [PATH] <-- Overrides output path if output specified.  
+> > --lang c | cpp | python  <-- Specifies language    
+> > --output | json <-- Changes output format   
+> > --output-path -p | [PATH] <-- Overrides output path if output specified.   
 >  
 > #### Examples:
 > >
