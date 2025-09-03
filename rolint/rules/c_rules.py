@@ -32,7 +32,6 @@ def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_t
                 violations += function_and_vars_use.check_global(node, source_code)
 
             #Check declarations rules (multiple conversions, no initialization)  
-            print("doing stuff")
             violations += function_and_vars_use.check_declaration(node, source_code)
 
 
