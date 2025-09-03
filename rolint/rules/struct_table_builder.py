@@ -43,6 +43,5 @@ def build_struct_table(node, source_code:str) -> list[dict]:
 
     walk(node)
 
-    print(struct_table)
     return struct_table
     
