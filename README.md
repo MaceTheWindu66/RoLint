@@ -10,7 +10,7 @@ This Linter is designed with MISRA-C, MISRA-C++, PEP8, and The Power Of 10 Stand
 
 ## UPDATE 0.1.7:  
 
-### Changes to RoLint for the 0.1.7 update:  
+### Changes to RoLint for the 0.1.8 update:  
 > Bug Fixes:  
 > > Fixed versioning issue in pyproject.toml, leading to some issues with versioning and causing traceback issues.  
 > > Structs no longer have false positive issue with implicit casting.  
