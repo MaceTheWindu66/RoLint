@@ -1,6 +1,6 @@
 [project]
 name = "rolint"
-version = "0.1.8"
+version = "0.1.9"
 description = "RoLint - A multi-language linter for safe robotic software development (C, C++, Python)"
 authors = [{ name = "Maddux Berry", email = "madduxberry31@gmail.com" }]
 readme = "README.md"
