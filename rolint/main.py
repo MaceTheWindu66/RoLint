@@ -126,10 +126,10 @@ def run_file_lint(file_path: Path, lang: str):
         if ignored_blocks or ignored_lines:
             for il in ignored_lines:
                 il["file"] = str(file_path)
-                print(f"⚠️  FLAG: {file_path} - Line ignored or overridden at line {il["line"]}")
+                print(f"⚠️  FLAG: {file_path} - Line ignored or overridden at line {il['line']}")
             for il in ignored_blocks:
                 il["file"] = str(file_path)
-                print(f"⚠️  FLAG: {file_path} - Line ignored or overridden at block {il["line"]}")
+                print(f"⚠️  FLAG: {file_path} - Line ignored or overridden at block {il['line']}")
 
         
         
@@ -160,10 +160,10 @@ def run_file_lint(file_path: Path, lang: str):
         if ignored_blocks or ignored_lines:
             for il in ignored_lines:
                 il["file"] = str(file_path)
-                print(f"⚠️  FLAG: {file_path} - Line ignored or overridden at line {il["line"]}")
+                print(f"⚠️  FLAG: {file_path} - Line ignored or overridden at line {il['line']}")
             for il in ignored_blocks:
                 il["file"] = str(file_path)
-                print(f"⚠️  FLAG: {file_path} - Line ignored or overridden at block {il["line"]}")
+                print(f"⚠️  FLAG: {file_path} - Line ignored or overridden at block {il['line']}")
 
 
     elif lang in {"python"}:
@@ -181,10 +181,10 @@ def run_file_lint(file_path: Path, lang: str):
         if ignored_blocks or ignored_lines:
             for il in ignored_lines:
                 il["file"] = str(file_path)
-                print(f"⚠️  FLAG: {file_path} - Line ignored or overridden at line {il["line"]}")
+                print(f"⚠️  FLAG: {file_path} - Line ignored or overridden at line {il['line']}")
             for il in ignored_blocks:
                 il["file"] = str(file_path)
-                print(f"⚠️  FLAG: {file_path} - Line ignored or overridden at block {il["line"]}")
+                print(f"⚠️  FLAG: {file_path} - Line ignored or overridden at block {il['line']}")
     else:
         print(f"⚠️ Unknown language: {lang}")
     
