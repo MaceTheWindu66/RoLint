@@ -8,10 +8,12 @@
 RoLint is designed to be a robust and strict linter for robotics / embedded systems. It was originally developed for the Humanoid Robot Project at Worcester Polytechnic Institute.
 This Linter is designed with MISRA-C, MISRA-C++, PEP8, and The Power Of 10 Standards in mind. Below is how to install and use RoLint, as well as an overview of the rules for the linter.
 
-## UPDATE 0.1.7:  
+## UPDATE 0.1.9:  
 
-### Changes to RoLint for the 0.1.8 update:  
+### Changes to RoLint for the 0.1.9 update:  
 > Bug Fixes:  
+> > Raised minimum python version to 3.12
+> > Fixed rolint: ignore bug where it would ignore the comment instead of the intended line itself.
 > > Fixed versioning issue in pyproject.toml, leading to some issues with versioning and causing traceback issues.  
 > > Structs no longer have false positive issue with implicit casting.  
 
@@ -22,6 +24,7 @@ This Linter is designed with MISRA-C, MISRA-C++, PEP8, and The Power Of 10 Stand
 
 ### Roadmap / Future Features:  
 > Using Rich formatting for clean output to console
+> rolint: extern flag to tell rolint an extern var doesn't need initialization here
 
 ## Installation of RoLint
 

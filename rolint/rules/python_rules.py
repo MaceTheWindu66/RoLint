@@ -169,8 +169,9 @@ def run_python_linter(path: Path, ignored_lines, ignored_blocks) -> list[dict]:
     ignored_line_ranges = get_block_ranges(tree, ignored_blocks)
 
     def is_ignored(line):
+        ignored_line_nums  = {il["line"] for il in ignored_lines}
         # Helper function to determine if a line is ignored or not
-        if line in ignored_lines:
+        if line in ignored_line_nums:
             return True
         for start, end in ignored_line_ranges:
             if start <= line <= end:
@@ -190,12 +191,12 @@ def get_block_ranges(tree, ignored_lines):
     """
     Helper to determine a coding block's size to ignore (for rolint: ignore-block command)
     """
-
+    ignored_block_nums = {ib["line"] for ib in ignored_lines}
     ignored_ranges = []
 
     for node in ast.walk(tree):
         # Skip if the node doesn't have lineno (like `Load`, `Store`, etc.)
-        if hasattr(node, "lineno") and node.lineno in ignored_lines:
+        if hasattr(node, "lineno") and node.lineno in ignored_block_nums:
             # Estimate block range using lineno and end_lineno (Python 3.8+)
             start = node.lineno
             end = getattr(node, "end_lineno", None)

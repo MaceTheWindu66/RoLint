@@ -69,22 +69,28 @@ def run_linter(path: Path, lang: str = None, output_format: str = "text", output
         if not inferred_lang:
             print(f"⚠️ Could not detect language for {path}")
             return
+
         print(f"🔍 Linting: {path}")
         print(f"🌐 Language: {inferred_lang}")
         print(f"📤 Output format: {output_format}")
-        run_file_lint(path, inferred_lang)
+
+        v, il, ib = run_file_lint(path, inferred_lang)  # ← capture
+
+        violations.extend(v)
+        ignored_lines.extend(il or [])
+        ignored_blocks.extend(ib or [])
+        
 
         if violations:
-            if output_format == "json":   
-                report_json(violations, ignored_lines, ignored_blocks, output_path)
-                print(f"📄 Output at {output_path}")
+            if output_format == "json":
+                report_json(violations, ignored_lines, ignored_blocks, output_path=output_path)  # ← keyword
+                if output_path:
+                    print(f"📄 Output at {output_path}")
             print("Blocking commit.")
             print(" - John 8:11")
             sys.exit(1)
         else:
             sys.exit(0)
-    else:
-        print(f"❌ Path does not exist: {path}")
 
 
 def run_file_lint(file_path: Path, lang: str):
@@ -108,6 +114,7 @@ def run_file_lint(file_path: Path, lang: str):
         global_struct_table = build_struct_table(tree.root_node, source)
 
         ignored_lines, ignored_blocks = override.detect_override_lines(source)
+
 
         if file_path.suffix in {".h"}:
             violations += c_rules.check_header_guard(source, str(file_path))

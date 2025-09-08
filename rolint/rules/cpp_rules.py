@@ -5,11 +5,14 @@ def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_t
 
     violations = []
 
-    if node.start_point[0] in ignored_blocks:
+    ignored_line_nums  = {il["line"] - 1 for il in ignored_lines}
+    ignored_block_nums = {ib["line"] - 1 for ib in ignored_blocks}
+
+    if node.start_point[0] in ignored_block_nums:
         
         return violations  
 
-    if node.start_point[0] not in ignored_lines:
+    if node.start_point[0] not in ignored_line_nums:
         # Check for banned functions including new and delete
         if node.type == "call_expression":
             violations += check_banned_funcs(node, source_code)

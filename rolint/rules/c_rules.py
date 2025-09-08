@@ -10,15 +10,18 @@ from .c_rule_functions import type_safety
 
 def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_table: dict, struct_table, is_global_var, ignored_lines, ignored_blocks) -> list[dict]:
 
+    ignored_line_nums  = {il["line"] - 1 for il in ignored_lines}
+    ignored_block_nums = {ib["line"] - 1 for ib in ignored_blocks}
     
     violations = []
 
-    if (node.start_point[0] in ignored_blocks):
+    if (node.start_point[0] in ignored_block_nums):
         
         return violations  
 
-    if node.start_point[0] not in ignored_lines:
-
+    if node.start_point[0] in ignored_line_nums:
+        return violations
+    else:
         if node.type == "call_expression":
             #Check expression call to see if function is banned
             violations += check_banned_functions(node, source_code)
@@ -92,7 +95,7 @@ def walk(node, source_code:str, symbol_table: dict, declared_table: dict, used_t
                 if name in declared_table["functions"]:
                     used_table["functions"].add(name) 
 
-    if node.start_point[0] not in ignored_blocks:
+    if node.start_point[0] not in ignored_block_nums:
         for child in node.children:
             violations += walk(child, source_code, symbol_table, declared_table, used_table, struct_table, is_global_var, ignored_lines, ignored_blocks)
         

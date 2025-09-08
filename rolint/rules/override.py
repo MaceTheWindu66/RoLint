@@ -9,7 +9,7 @@ def detect_override_lines(source_code: str) -> set[int]:
     ignored_lines = []
     ignored_blocks = []
     lines = source_code.splitlines()
-    for i, line in enumerate(lines):
+    for i, line in enumerate(lines, start=1):
         if "rolint: ignore" in line and "rolint: ignore-block" not in line:
             ignored_lines.append({
                         "line": i + 1
