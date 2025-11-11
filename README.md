@@ -4,6 +4,9 @@
  <img width="300" height="500" alt="Rolint_Logo" src="https://github.com/user-attachments/assets/318bd375-e821-4a63-91ef-9e9a4cf12fde" />
 </p>
 
+# This repository is deprecated. RoLint updates have been moved to the KoalbyMQP repository for use on the WPI Humanoid Robot MQP, which this was developed for.
+https://github.com/KoalbyMQP/Tools
+
 
 RoLint is designed to be a robust and strict linter for robotics / embedded systems. It was originally developed for the Humanoid Robot Project at Worcester Polytechnic Institute.
 This Linter is designed with MISRA-C, MISRA-C++, PEP8, and The Power Of 10 Standards in mind. Below is how to install and use RoLint, as well as an overview of the rules for the linter.
